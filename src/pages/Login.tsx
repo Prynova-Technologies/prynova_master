@@ -1,128 +1,93 @@
 import React, { useState } from 'react';
+import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Button,
-  Container,
-  TextField,
-  Typography,
-  Paper,
-  Grid,
-  Link,
-  Alert,
-} from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 
 const Login: React.FC = () => {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    // This is a mock authentication - in a real app, you would call an API
-    if (email === 'admin@prynova.com' && password === 'admin123') {
-      // Store auth token in localStorage (in a real app, use secure storage)
-      localStorage.setItem('authToken', 'mock-jwt-token');
-      localStorage.setItem('userRole', 'admin');
-      navigate('/admin/dashboard');
-    } else if (email && password) {
-      // Simulate regular user login
-      localStorage.setItem('authToken', 'mock-user-jwt-token');
-      localStorage.setItem('userRole', 'user');
+    try {
+      setError('');
+      setLoading(true);
+      await login(email, password);
       navigate('/');
-    } else {
-      setError('Invalid email or password');
+    } catch (err) {
+      setError('Failed to sign in. Please check your credentials.');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container component="main" maxWidth="xs">
-      <Paper 
-        elevation={3} 
-        sx={{
-          marginTop: 8,
-          padding: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Box 
-          sx={{
-            bgcolor: 'primary.main',
-            color: 'white',
-            borderRadius: '50%',
-            p: 1,
-            mb: 2
-          }}
-        >
-          <LockOutlinedIcon />
-        </Box>
-        <Typography component="h1" variant="h5">
-          Sign in
-        </Typography>
-        
-        {error && (
-          <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
-            {error}
-          </Alert>
-        )}
-        
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            autoComplete="email"
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-          >
-            Sign In
-          </Button>
-          <Grid container>
-            <Grid item xs>
-              <Link href="#" variant="body2">
-                Forgot password?
-              </Link>
-            </Grid>
-            <Grid item>
-              <Link href="#" variant="body2">
-                {"Don't have an account? Sign Up"}
-              </Link>
-            </Grid>
-          </Grid>
-        </Box>
-      </Paper>
-      <Box sx={{ mt: 2, textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
-          Demo credentials: admin@prynova.com / admin123
-        </Typography>
-      </Box>
+    <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: "100vh" }}>
+      <Card className="shadow" style={{ maxWidth: "400px", width: "100%" }}>
+        <Card.Body className="p-4">
+          <div className="text-center mb-4">
+            <div style={{ color: "#212529" }}>
+              <h1 style={{ 
+                fontWeight: 'bold', 
+                marginBottom: '1.5rem',
+                letterSpacing: '1px'
+              }}>
+                Login
+              </h1>
+            </div>
+          </div>
+
+          {error && <Alert variant="danger">{error}</Alert>}
+
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3" controlId="formEmail">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="rounded"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-4" controlId="formPassword">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="rounded"
+              />
+            </Form.Group>
+
+            <div className="d-grid">
+              <Button 
+                variant="primary" 
+                type="submit" 
+                disabled={loading}
+                className="rounded-pill py-2"
+                style={{ backgroundColor: "#0d6efd", borderColor: "#0d6efd" }}
+              >
+                {loading ? 'Signing in...' : 'Login'}
+              </Button>
+            </div>
+          </Form>
+
+          <div className="text-center mt-4 text-muted">
+            <div>Demo credentials:</div>
+            <div>Admin: admin@example.com / password</div>
+          </div>
+        </Card.Body>
+      </Card>
     </Container>
   );
 };

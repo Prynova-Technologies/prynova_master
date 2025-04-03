@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import {
   Box,
-  Button,
-  Container,
+  Button as MuiButton,
+  Container as MuiContainer,
   Typography,
   Paper,
   Grid,
@@ -12,13 +12,14 @@ import {
   Stepper,
   Step,
   StepLabel,
-  Card,
+  Card as MuiCard,
   CardContent,
   CardActions,
   Divider,
   Alert,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 
 const PaymentPage: React.FC = () => {
   const navigate = useNavigate();
@@ -65,8 +66,8 @@ const PaymentPage: React.FC = () => {
             </Typography>
             <Grid container spacing={3}>
               {plans.map((plan) => (
-                <Grid item xs={12} md={4} key={plan.name}>
-                  <Card 
+                <Grid item xs={12} md={6} lg={4} key={plan.name}>
+                  <MuiCard 
                     variant="outlined" 
                     sx={{
                       height: '100%',
@@ -91,16 +92,16 @@ const PaymentPage: React.FC = () => {
                       ))}
                     </CardContent>
                     <CardActions>
-                      <Button 
+                      <MuiButton 
                         fullWidth 
                         variant={selectedPlan === plan.name ? "contained" : "outlined"}
                         color="primary"
                         onClick={() => handlePlanSelect(plan.name)}
                       >
                         {selectedPlan === plan.name ? 'Selected' : 'Select'}
-                      </Button>
+                      </MuiButton>
                     </CardActions>
-                  </Card>
+                  </MuiCard>
                 </Grid>
               ))}
             </Grid>
@@ -158,17 +159,17 @@ const PaymentPage: React.FC = () => {
               </Grid>
             </Grid>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button onClick={handleBack} sx={{ mt: 3, ml: 1 }}>
+              <MuiButton onClick={handleBack} sx={{ mt: 3, ml: 1 }}>
                 Back
-              </Button>
-              <Button
+              </MuiButton>
+              <MuiButton
                 variant="contained"
                 color="primary"
                 type="submit"
                 sx={{ mt: 3, ml: 1 }}
               >
                 Place Order
-              </Button>
+              </MuiButton>
             </Box>
           </Box>
         );
@@ -198,7 +199,7 @@ const PaymentPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg">
+    <MuiContainer maxWidth="lg">
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
         <Typography component="h1" variant="h4" align="center" gutterBottom>
           Subscription Checkout
@@ -213,18 +214,18 @@ const PaymentPage: React.FC = () => {
         {getStepContent(activeStep)}
         {activeStep === 0 && (
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-            <Button
+            <MuiButton
               variant="contained"
               color="primary"
               onClick={handleNext}
               disabled={!selectedPlan}
             >
               Next
-            </Button>
+            </MuiButton>
           </Box>
         )}
       </Paper>
-    </Container>
+    </MuiContainer>
   );
 };
 

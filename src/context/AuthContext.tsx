@@ -1,12 +1,17 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
 interface AuthContextType {
+  user: User | null;
   isAuthenticated: boolean;
-  isAdmin: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,46 +24,58 @@ export const useAuth = () => {
   return context;
 };
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
 
+  // Check if user is already logged in on mount
   useEffect(() => {
-    // Check if user is authenticated on initial load
-    const checkAuth = () => {
-      const token = localStorage.getItem('authToken');
-      const userRole = localStorage.getItem('userRole');
-      
-      setIsAuthenticated(!!token);
-      setIsAdmin(userRole === 'admin');
-      setLoading(false);
-    };
-    
-    checkAuth();
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      setIsAuthenticated(true);
+    }
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // This is a mock authentication - in a real app, you would call an API
-      if (email === 'admin@prynova.com' && password === 'admin123') {
-        localStorage.setItem('authToken', 'mock-jwt-token');
-        localStorage.setItem('userRole', 'admin');
+      // This is a mock implementation
+      // In a real app, you would make an API call to your backend
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock successful login for demo purposes
+      // In production, this would be the response from your API
+      if (email === 'admin@example.com' && password === 'password') {
+        const userData: User = {
+          id: '1',
+          name: 'Admin User',
+          email: 'admin@example.com',
+          role: 'admin'
+        };
+        
+        // Store user data in localStorage
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Update state
+        setUser(userData);
         setIsAuthenticated(true);
-        setIsAdmin(true);
         return true;
-      } else if (email && password) {
-        // Simulate regular user login
-        localStorage.setItem('authToken', 'mock-user-jwt-token');
-        localStorage.setItem('userRole', 'user');
+      } else if (email === 'user@example.com' && password === 'password') {
+        const userData: User = {
+          id: '2',
+          name: 'Regular User',
+          email: 'user@example.com',
+          role: 'user'
+        };
+        
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
         setIsAuthenticated(true);
-        setIsAdmin(false);
         return true;
       }
+      
       return false;
     } catch (error) {
       console.error('Login error:', error);
@@ -67,18 +84,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userRole');
+    // Remove user data from localStorage
+    localStorage.removeItem('user');
+    
+    // Update state
+    setUser(null);
     setIsAuthenticated(false);
-    setIsAdmin(false);
   };
 
   const value = {
+    user,
     isAuthenticated,
-    isAdmin,
     login,
-    logout,
-    loading
+    logout
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

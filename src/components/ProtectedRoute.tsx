@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface ProtectedRouteProps {
@@ -7,24 +7,22 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requireAdmin = false }) => {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
-
-  // Show loading state while checking authentication
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
 
   // Check if user is authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    // Redirect to login page with the return url
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check if admin access is required but user is not an admin
-  if (requireAdmin && !isAdmin) {
+  // Check if admin access is required
+  if (requireAdmin && user?.role !== 'admin') {
+    // User is not an admin, redirect to home page
     return <Navigate to="/" replace />;
   }
 
-  // User is authenticated and has appropriate permissions
+  // User is authenticated (and is admin if required)
   return <Outlet />;
 };
 
