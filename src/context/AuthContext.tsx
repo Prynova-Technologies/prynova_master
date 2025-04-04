@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -27,20 +27,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Check if user is authenticated on initial load
     const checkAuth = () => {
       const token = localStorage.getItem('authToken');
       const userRole = localStorage.getItem('userRole');
+      const isAuth = !!token;
       
-      setIsAuthenticated(!!token);
-      setIsAdmin(userRole === 'admin');
+      setIsAuthenticated(isAuth);
+      setIsAdmin(userRole === 'admin' || userRole === 'super_admin');
       setLoading(false);
+
+      // Only redirect authenticated users from login page to dashboard
+      if (isAuth && location.pathname === '/login') {
+        navigate('/admin/dashboard', { replace: true });
+      }
     };
     
     checkAuth();
-  }, []);
+  }, [location.pathname]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {

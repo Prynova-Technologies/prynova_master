@@ -1,9 +1,16 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { Box, Button, Container, Typography, Grid, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import  { useAuth } from '../context/AuthContext';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  useEffect(() => {
+    // clear user credentials when they come to this page
+    logout()
+  }, [navigate]);
 
   return (
     <Box sx={{ flexGrow: 1 }}>

@@ -27,10 +27,10 @@ const Settings = React.lazy(() => import('./pages/admin/Settings'))
 
 function App() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <CssBaseline />
-        <Router>
+    <Router>
+      <AuthProvider>
+        <ThemeProvider>
+          <CssBaseline />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Home />} />
@@ -76,9 +76,9 @@ function App() {
               } />
             </Route>
           </Routes>
-        </Router>
-      </ThemeProvider>
-    </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </Router>
   )
 }
 

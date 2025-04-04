@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -18,11 +18,19 @@ import api from '../services/api';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const location = useLocation();
+  const { login, isAuthenticated } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Redirect to dashboard if already authenticated
+    if (isAuthenticated) {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -31,17 +39,17 @@ const Login: React.FC = () => {
     
     try {
       // Call the backend API for admin login
-      const response = await api.post('/admins/login', { email, password });
+      // const response = await api.post('/admins/login', { email, password });
       
-      // Store the token and user info
-      localStorage.setItem('authToken', response.data.token);
-      localStorage.setItem('userRole', response.data.admin.role);
+      const success = await login(email, password);
       
-      // Update auth context
-      await login(email, password);
-      
-      // Redirect based on role
-      navigate('/admin/dashboard');
+      if (success) {
+        // Get the intended destination or default to dashboard
+        const from = (location.state as any)?.from?.pathname || '/admin/dashboard';
+        navigate(from, { replace: true });
+      } else {
+        setError('Login failed. Please check your credentials.');
+      }
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');

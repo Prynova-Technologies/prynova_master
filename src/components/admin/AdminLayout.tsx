@@ -194,7 +194,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         }}
       >
         <Toolbar /> {/* This creates space for the AppBar */}
-        <Container maxWidth="lg">
+        <Container>
           {children}
         </Container>
       </Box>
