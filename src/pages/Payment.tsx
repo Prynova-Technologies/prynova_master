@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
+import { paymentApi } from '../services/api'
 import { 
   Box, 
   Typography, 
@@ -24,6 +25,8 @@ export default function Payment() {
   // Customer information (Step 1)
   const [customerId, setCustomerId] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [subscriptionAmount, setSubscriptionAmount] = useState(0)
+  const [paymentId, setPaymentId] = useState('')
   
   // Payment method (Step 2)
   const [activeTab, setActiveTab] = useState(0)
@@ -36,11 +39,40 @@ export default function Payment() {
 
   const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID
 
-  const handlePaymentSuccess = (details: any) => {
-    console.log('Payment completed:', details)
-    // TODO: Add API call to process payment
-    setPaymentComplete(true)
-    setActiveStep(2) // Move to final step
+  // Fetch customer subscription amount when customerId changes in step 1
+  useEffect(() => {
+    if (customerId && activeStep === 1) {
+      const fetchSubscriptionDetails = async () => {
+        try {
+          const details = await paymentApi.getSubscriptionDetails(customerId)
+          setSubscriptionAmount(details.subscriptionAmount)
+          setCompanyName(details.companyName)
+        } catch (error) {
+          console.error('Error fetching subscription details:', error)
+          // Handle error - could show an alert
+        }
+      }
+      
+      fetchSubscriptionDetails()
+    }
+  }, [customerId, activeStep])
+
+  const handlePaymentSuccess = async (details: any) => {
+    try {
+      console.log('Payment completed:', details)
+      
+      // Capture the payment through our backend
+      const response = await paymentApi.capturePayment(details.id, customerId)
+      
+      // Store the payment ID from the response
+      setPaymentId(response.paymentId)
+      
+      setPaymentComplete(true)
+      setActiveStep(2) // Move to final step
+    } catch (error) {
+      console.error('Error processing payment:', error)
+      // Handle payment error
+    }
   }
 
   const handleMTNPayment = () => {
@@ -144,15 +176,16 @@ export default function Payment() {
                 }}>
                   <PayPalButtons
                     style={{ layout: 'vertical' }}
-                    createOrder={(_, actions) => actions.order.create({
-                      purchase_units: [{
-                        amount: {
-                          value: '100.00', // TODO: Replace with dynamic value
-                          currency_code: 'USD'
-                        },
-                        description: `Payment for ${companyName} (ID: ${customerId})`
-                      }]
-                    })}
+                    createOrder={async () => {
+                      try {
+                        // Create order through our backend API
+                        const orderData = await paymentApi.createOrder(customerId)
+                        return orderData.orderId
+                      } catch (error) {
+                        console.error('Error creating order:', error)
+                        throw new Error('Could not create order')
+                      }
+                    }}
                     onApprove={async (_, actions) => {
                       const details = await actions.order?.capture()
                       handlePaymentSuccess(details)
@@ -224,7 +257,7 @@ export default function Payment() {
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <Typography variant="subtitle2">Amount</Typography>
-                      <Typography variant="body1">$100.00 USD</Typography>
+                      <Typography variant="body1">${subscriptionAmount.toFixed(2)} USD</Typography>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <Typography variant="subtitle2">Payment Method</Typography>
@@ -232,7 +265,7 @@ export default function Payment() {
                     </Grid>
                     <Grid item xs={12}>
                       <Typography variant="subtitle2">Transaction ID</Typography>
-                      <Typography variant="body1">{`TXN-${Math.random().toString(36).substring(2, 10).toUpperCase()}`}</Typography>
+                      <Typography variant="body1">{paymentId || 'Processing...'}</Typography>
                     </Grid>
                   </Grid>
                   

@@ -44,22 +44,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // This is a mock authentication - in a real app, you would call an API
-      if (email === 'admin@prynova.com' && password === 'admin123') {
-        localStorage.setItem('authToken', 'mock-jwt-token');
-        localStorage.setItem('userRole', 'admin');
-        setIsAuthenticated(true);
-        setIsAdmin(true);
-        return true;
-      } else if (email && password) {
-        // Simulate regular user login
-        localStorage.setItem('authToken', 'mock-user-jwt-token');
-        localStorage.setItem('userRole', 'user');
-        setIsAuthenticated(true);
-        setIsAdmin(false);
-        return true;
+      // Call the admin login API
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:7001/api'}/admins/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
       }
-      return false;
+
+      const data = await response.json();
+      
+      // Store token and user role
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('userRole', data.admin.role);
+      
+      // Update authentication state
+      setIsAuthenticated(true);
+      setIsAdmin(['admin', 'super_admin'].includes(data.admin.role));
+      
+      return true;
     } catch (error) {
       console.error('Login error:', error);
       return false;

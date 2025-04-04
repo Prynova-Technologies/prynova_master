@@ -10,31 +10,43 @@ import {
   Grid,
   Link,
   Alert,
+  CircularProgress
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setError('');
+    setLoading(true);
     
-    // This is a mock authentication - in a real app, you would call an API
-    if (email === 'admin@prynova.com' && password === 'admin123') {
-      // Store auth token in localStorage (in a real app, use secure storage)
-      localStorage.setItem('authToken', 'mock-jwt-token');
-      localStorage.setItem('userRole', 'admin');
+    try {
+      // Call the backend API for admin login
+      const response = await api.post('/admins/login', { email, password });
+      
+      // Store the token and user info
+      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('userRole', response.data.admin.role);
+      
+      // Update auth context
+      await login(email, password);
+      
+      // Redirect based on role
       navigate('/admin/dashboard');
-    } else if (email && password) {
-      // Simulate regular user login
-      localStorage.setItem('authToken', 'mock-user-jwt-token');
-      localStorage.setItem('userRole', 'user');
-      navigate('/');
-    } else {
-      setError('Invalid email or password');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
     }
   };
 
