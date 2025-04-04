@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { CssBaseline } from '@mui/material'
 import React, { Suspense } from 'react'
 import './App.css'
+import './styles/global.css' // Import the new global CSS
 
 // Pages
 import Home from './pages/Home'
@@ -33,7 +34,7 @@ function App() {
           <CssBaseline />
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home/>} />
             <Route path="/login" element={<Login />} />
             <Route path="/payment" element={<Payment />} />
             

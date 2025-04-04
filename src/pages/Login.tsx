@@ -60,88 +60,70 @@ const Login: React.FC = () => {
 
   return (
     <Container component="main" maxWidth="xs">
-      <Paper 
-        elevation={3} 
+      <Box
         sx={{
           marginTop: 8,
-          padding: 4,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          minHeight: '100vh'
         }}
       >
-        <Box 
-          sx={{
-            bgcolor: 'primary.main',
-            color: 'white',
-            borderRadius: '50%',
-            p: 1,
-            mb: 2
-          }}
-        >
-          <LockOutlinedIcon />
-        </Box>
-        <Typography component="h1" variant="h5">
-          Sign in
-        </Typography>
-        
-        {error && (
-          <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
-            {error}
-          </Alert>
-        )}
-        
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            autoComplete="email"
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-          >
-            Sign In
-          </Button>
-          <Grid container>
-            <Grid item xs>
-              <Link href="#" variant="body2">
-                Forgot password?
-              </Link>
-            </Grid>
-            <Grid item>
-              <Link href="#" variant="body2">
-                {"Don't have an account? Sign Up"}
-              </Link>
-            </Grid>
-          </Grid>
-        </Box>
-      </Paper>
-      <Box sx={{ mt: 2, textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
-          Demo credentials: admin@prynova.com / admin123
-        </Typography>
+        <Paper elevation={3} sx={{ p: 4, width: '100%', mt: 8 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+            <LockOutlinedIcon sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
+            <Typography component="h1" variant="h5" sx={{ fontWeight: 'bold', letterSpacing: 1 }}>
+              Login
+            </Typography>
+          </Box>
+
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2, py: 1.5, borderRadius: 28 }}
+              disabled={loading}
+            >
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Login'
+              )}
+            </Button>
+
+            <Box sx={{ mt: 3, textAlign: 'center', color: 'text.secondary' }}>
+              <Typography variant="body2" gutterBottom>Demo credentials:</Typography>
+              <Typography variant="body2">Admin: admin@example.com / password</Typography>
+            </Box>
+          </Box>
+        </Paper>
       </Box>
     </Container>
   );
