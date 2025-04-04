@@ -1,22 +1,16 @@
 import React from 'react';
 import {
-  Box,
-  Container,
   Typography,
   Grid,
   Paper,
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
   Divider,
+  Box,
+  Container,
 } from '@mui/material';
-import {
-  Dashboard as DashboardIcon,
-  People as PeopleIcon,
-  AttachMoney as PaymentIcon,
-  Settings as SettingsIcon,
-} from '@mui/icons-material';
+import AdminLayout from '../../components/admin/AdminLayout';
 
 const AdminDashboard: React.FC = () => {
   // Mock data for the dashboard
@@ -40,11 +34,10 @@ const AdminDashboard: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Container maxWidth="lg">
-        <Typography variant="h4" gutterBottom component="h1">
-          Admin Dashboard
-        </Typography>
+    <AdminLayout>
+      <Typography variant="h4" gutterBottom component="h1">
+        Dashboard
+      </Typography>
         
         {/* Stats Overview */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -73,43 +66,9 @@ const AdminDashboard: React.FC = () => {
         </Grid>
 
         <Grid container spacing={3}>
-          {/* Admin Navigation */}
-          <Grid item xs={12} md={3}>
-            <Paper elevation={2} sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Quick Navigation
-              </Typography>
-              <List>
-                <ListItem button selected>
-                  <ListItemIcon>
-                    <DashboardIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Dashboard" />
-                </ListItem>
-                <ListItem button>
-                  <ListItemIcon>
-                    <PeopleIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Users" />
-                </ListItem>
-                <ListItem button>
-                  <ListItemIcon>
-                    <PaymentIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Payments" />
-                </ListItem>
-                <ListItem button>
-                  <ListItemIcon>
-                    <SettingsIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Settings" />
-                </ListItem>
-              </List>
-            </Paper>
-          </Grid>
 
           {/* Recent Users */}
-          <Grid item xs={12} md={4.5}>
+          <Grid item xs={12} md={6}>
             <Paper elevation={2} sx={{ p: 2 }}>
               <Typography variant="h6" gutterBottom>
                 Recent Users
@@ -142,7 +101,7 @@ const AdminDashboard: React.FC = () => {
           </Grid>
 
           {/* Recent Payments */}
-          <Grid item xs={12} md={4.5}>
+          <Grid item xs={12} md={6}>
             <Paper elevation={2} sx={{ p: 2 }}>
               <Typography variant="h6" gutterBottom>
                 Recent Payments
@@ -174,8 +133,7 @@ const AdminDashboard: React.FC = () => {
             </Paper>
           </Grid>
         </Grid>
-      </Container>
-    </Box>
+    </AdminLayout>
   );
 };
 
