@@ -1,93 +1,130 @@
-import React, { useState } from 'react';
-import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  Box,
+  Button,
+  Container,
+  TextField,
+  Typography,
+  Paper,
+  Grid,
+  Link,
+  Alert,
+  CircularProgress
+} from '@mui/material';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isAuthenticated } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { login } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    // Redirect to dashboard if already authenticated
+    if (isAuthenticated) {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+    setLoading(true);
     
     try {
-      setError('');
-      setLoading(true);
-      await login(email, password);
-      navigate('/');
-    } catch (err) {
-      setError('Failed to sign in. Please check your credentials.');
-      console.error(err);
+      // Call the backend API for admin login
+      // const response = await api.post('/admins/login', { email, password });
+      
+      const success = await login(email, password);
+      
+      if (success) {
+        // Get the intended destination or default to dashboard
+        const from = (location.state as any)?.from?.pathname || '/admin/dashboard';
+        navigate(from, { replace: true });
+      } else {
+        setError('Login failed. Please check your credentials.');
+      }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: "100vh" }}>
-      <Card className="shadow" style={{ maxWidth: "400px", width: "100%" }}>
-        <Card.Body className="p-4">
-          <div className="text-center mb-4">
-            <div style={{ color: "#212529" }}>
-              <h1 style={{ 
-                fontWeight: 'bold', 
-                marginBottom: '1.5rem',
-                letterSpacing: '1px'
-              }}>
-                Login
-              </h1>
-            </div>
-          </div>
+    <Container component="main" maxWidth="xs">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          minHeight: '100vh'
+        }}
+      >
+        <Paper elevation={3} sx={{ p: 4, width: '100%', mt: 8 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+            <LockOutlinedIcon sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
+            <Typography component="h1" variant="h5" sx={{ fontWeight: 'bold', letterSpacing: 1 }}>
+              Login
+            </Typography>
+          </Box>
 
-          {error && <Alert variant="danger">{error}</Alert>}
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3" controlId="formEmail">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="rounded"
-              />
-            </Form.Group>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2, py: 1.5, borderRadius: 28 }}
+              disabled={loading}
+            >
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Login'
+              )}
+            </Button>
 
-            <Form.Group className="mb-4" controlId="formPassword">
-              <Form.Label>Password</Form.Label>
-              <Form.Control
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="rounded"
-              />
-            </Form.Group>
-
-            <div className="d-grid">
-              <Button 
-                variant="primary" 
-                type="submit" 
-                disabled={loading}
-                className="rounded-pill py-2"
-                style={{ backgroundColor: "#0d6efd", borderColor: "#0d6efd" }}
-              >
-                {loading ? 'Signing in...' : 'Login'}
-              </Button>
-            </div>
-          </Form>
-
-          <div className="text-center mt-4 text-muted">
-            <div>Demo credentials:</div>
-            <div>Admin: admin@example.com / password</div>
-          </div>
-        </Card.Body>
-      </Card>
+            <Box sx={{ mt: 3, textAlign: 'center', color: 'text.secondary' }}>
+              <Typography variant="body2" gutterBottom>Demo credentials:</Typography>
+              <Typography variant="body2">Admin: admin@example.com / password</Typography>
+            </Box>
+          </Box>
+        </Paper>
+      </Box>
     </Container>
   );
 };

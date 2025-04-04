@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
+import { CssBaseline } from '@mui/material'
+import React, { Suspense } from 'react'
 import './App.css'
 import './styles/global.css' // Import the new global CSS
 
@@ -13,81 +14,24 @@ import ProtectedRoute from './components/ProtectedRoute'
 
 // Context
 import { AuthProvider } from './context/AuthContext'
-import "bootstrap/dist/css/bootstrap.min.css";
+import { ThemeProvider } from './context/ThemeContext'
 
-// Create enhanced theme
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-      light: '#4791db',
-      dark: '#115293',
-    },
-    secondary: {
-      main: '#f50057',
-      light: '#ff4081',
-      dark: '#c51162',
-    },
-    background: {
-      default: '#f8f9fa',
-      paper: '#ffffff',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Segoe UI", sans-serif',
-    h1: {
-      fontWeight: 700,
-    },
-    h2: {
-      fontWeight: 600,
-    },
-    button: {
-      textTransform: 'none',
-      fontWeight: 500,
-    },
-  },
-  shape: {
-    borderRadius: 8,
-  },
-  shadows: [
-    'none',
-    '0px 2px 1px -1px rgba(0,0,0,0.1),0px 1px 1px 0px rgba(0,0,0,0.07),0px 1px 3px 0px rgba(0,0,0,0.06)',
-    // ... rest of the shadows remain default
-  ],
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          padding: '8px 16px',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-          },
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            transform: 'translateY(-5px)',
-            boxShadow: '0 10px 20px rgba(0,0,0,0.15)',
-          },
-        },
-      },
-    },
-  },
-});
+// Lazy load admin components
+const AdminDashboard = React.lazy(() => import('./pages/admin/Dashboard'))
+const Apps = React.lazy(() => import('./pages/admin/Apps'))
+const Customers = React.lazy(() => import('./pages/admin/Customers'))
+const Subscriptions = React.lazy(() => import('./pages/admin/Subscriptions'))
+const Users = React.lazy(() => import('./pages/admin/Users'))
+const Settings = React.lazy(() => import('./pages/admin/Settings'))
+
+// Theme is now managed by ThemeContext
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <Router>
       <AuthProvider>
-        <Router>
+        <ThemeProvider>
+          <CssBaseline />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Home/>} />
@@ -101,12 +45,41 @@ function App() {
             
             {/* Admin routes */}
             <Route element={<ProtectedRoute requireAdmin={true} />}>
-              <Route path="/admin/*" element={<div>Admin Dashboard</div>} />
+              <Route path="/admin/dashboard" element={
+                <Suspense fallback={<div>Loading...</div>}>
+                  <AdminDashboard />
+                </Suspense>
+              } />
+              <Route path="/admin/apps" element={
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Apps />
+                </Suspense>
+              } />
+              <Route path="/admin/customers" element={
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Customers />
+                </Suspense>
+              } />
+              <Route path="/admin/subscriptions" element={
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Subscriptions />
+                </Suspense>
+              } />
+              <Route path="/admin/users" element={
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Users />
+                </Suspense>
+              } />
+              <Route path="/admin/settings" element={
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Settings />
+                </Suspense>
+              } />
             </Route>
           </Routes>
-        </Router>
+        </ThemeProvider>
       </AuthProvider>
-    </ThemeProvider>
+    </Router>
   )
 }
 

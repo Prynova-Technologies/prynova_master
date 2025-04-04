@@ -1,232 +1,333 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Button as MuiButton,
-  Container as MuiContainer,
-  Typography,
-  Paper,
-  Grid,
-  TextField,
-  FormControlLabel,
-  Checkbox,
-  Stepper,
-  Step,
+import { useState, useEffect } from 'react'
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
+import { paymentApi } from '../services/api'
+import { 
+  Box, 
+  Typography, 
+  TextField, 
+  Button, 
+  Tabs, 
+  Tab, 
+  Paper, 
+  Stepper, 
+  Step, 
   StepLabel,
-  Card as MuiCard,
+  Card,
   CardContent,
-  CardActions,
-  Divider,
-  Alert,
-} from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
+  Grid,
+  Alert
+} from '@mui/material'
 
-const PaymentPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(0);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
+export default function Payment() {
+  // Step management
+  const [activeStep, setActiveStep] = useState(0)
+  
+  // Customer information (Step 1)
+  const [customerId, setCustomerId] = useState('')
+  const [companyName, setCompanyName] = useState('')
+  const [subscriptionAmount, setSubscriptionAmount] = useState(0)
+  const [paymentId, setPaymentId] = useState('')
+  
+  // Payment method (Step 2)
+  const [activeTab, setActiveTab] = useState(0)
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [transactionPin, setTransactionPin] = useState('')
+  
+  // Order summary (Step 3)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [paymentComplete, setPaymentComplete] = useState(false)
 
-  const plans = [
-    { name: 'Basic', price: '$9.99/month', features: ['Feature 1', 'Feature 2', 'Email support'] },
-    { name: 'Pro', price: '$19.99/month', features: ['All Basic features', 'Feature 3', 'Feature 4', 'Priority support'] },
-    { name: 'Enterprise', price: '$49.99/month', features: ['All Pro features', 'Feature 5', 'Feature 6', '24/7 support', 'Custom solutions'] },
-  ];
+  const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID
 
-  const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
-  };
+  // Fetch customer subscription amount when customerId changes in step 1
+  useEffect(() => {
+    if (customerId && activeStep === 1) {
+      const fetchSubscriptionDetails = async () => {
+        try {
+          const details = await paymentApi.getSubscriptionDetails(customerId)
+          setSubscriptionAmount(details.subscriptionAmount)
+          setCompanyName(details.companyName)
+        } catch (error) {
+          console.error('Error fetching subscription details:', error)
+          // Handle error - could show an alert
+        }
+      }
+      
+      fetchSubscriptionDetails()
+    }
+  }, [customerId, activeStep])
 
-  const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
-  };
+  const handlePaymentSuccess = async (details: any) => {
+    try {
+      console.log('Payment completed:', details)
+      
+      // Capture the payment through our backend
+      const response = await paymentApi.capturePayment(details.id, customerId)
+      
+      // Store the payment ID from the response
+      setPaymentId(response.paymentId)
+      
+      setPaymentComplete(true)
+      setActiveStep(2) // Move to final step
+    } catch (error) {
+      console.error('Error processing payment:', error)
+      // Handle payment error
+    }
+  }
 
-  const handlePlanSelect = (planName: string) => {
-    setSelectedPlan(planName);
-  };
-
-  const handlePaymentSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    // In a real app, you would process payment here
-    setPaymentSuccess(true);
+  const handleMTNPayment = () => {
+    setIsSubmitting(true)
+    console.log('Processing MTN payment', { 
+      phoneNumber, 
+      transactionPin,
+      customerId,
+      companyName
+    })
+    // TODO: Add API call for mobile money payment
     setTimeout(() => {
-      navigate('/');
-    }, 3000);
-  };
+      setIsSubmitting(false)
+      setPaymentComplete(true)
+      setActiveStep(2) // Move to final step
+    }, 1500)
+  }
 
-  const steps = ['Select Plan', 'Payment Details', 'Confirmation'];
+  // Handle next step navigation
+  const handleNext = () => {
+    setActiveStep((prevStep) => prevStep + 1)
+  }
 
+  // Handle previous step navigation
+  const handleBack = () => {
+    setActiveStep((prevStep) => prevStep - 1)
+  }
+
+  // Check if customer info form is valid
+  const isCustomerInfoValid = customerId.trim() !== '' && companyName.trim() !== ''
+
+  // Check if payment form is valid
+  const isPaymentFormValid = () => {
+    if (activeTab === 0) {
+      // PayPal is always valid as it's handled by PayPal's UI
+      return true
+    } else if (activeTab === 1) {
+      // MTN Mobile Money validation
+      return phoneNumber.trim() !== '' && transactionPin.trim() !== ''
+    }
+    return false
+  }
+
+  // Render step content based on active step
   const getStepContent = (step: number) => {
     switch (step) {
-      case 0:
+      case 0: // Customer Information
         return (
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              Choose a subscription plan
-            </Typography>
-            <Grid container spacing={3}>
-              {plans.map((plan) => (
-                <Grid item xs={12} md={6} lg={4} key={plan.name}>
-                  <MuiCard 
-                    variant="outlined" 
-                    sx={{
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      border: selectedPlan === plan.name ? '2px solid' : '1px solid',
-                      borderColor: selectedPlan === plan.name ? 'primary.main' : 'divider',
+          <Card variant="outlined" sx={{ mt: 2 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Customer Information</Typography>
+              <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <TextField
+                  label="Customer ID"
+                  variant="outlined"
+                  value={customerId}
+                  onChange={(e) => setCustomerId(e.target.value)}
+                  required
+                  fullWidth
+                />
+                <TextField
+                  label="Company/Store Name"
+                  variant="outlined"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  required
+                  fullWidth
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleNext}
+                  disabled={!isCustomerInfoValid}
+                  sx={{ mt: 2 }}
+                >
+                  Next
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        )
+      
+      case 1: // Payment Options
+        return (
+          <Card variant="outlined" sx={{ mt: 2 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Payment Method</Typography>
+              
+              <Paper sx={{ mb: 2 }}>
+                <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)} centered>
+                  <Tab label="PayPal" />
+                  <Tab label="MTN Mobile Money" />
+                </Tabs>
+              </Paper>
+
+              {activeTab === 0 && (
+                <PayPalScriptProvider options={{
+                  clientId: paypalClientId,
+                  currency: 'USD',
+                  intent: 'capture'
+                }}>
+                  <PayPalButtons
+                    style={{ layout: 'vertical' }}
+                    createOrder={async () => {
+                      try {
+                        // Create order through our backend API
+                        const orderData = await paymentApi.createOrder(customerId)
+                        return orderData.orderId
+                      } catch (error) {
+                        console.error('Error creating order:', error)
+                        throw new Error('Could not create order')
+                      }
                     }}
-                  >
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="h5" component="h2">
-                        {plan.name}
-                      </Typography>
-                      <Typography variant="h6" color="primary" gutterBottom>
-                        {plan.price}
-                      </Typography>
-                      <Divider sx={{ my: 2 }} />
-                      {plan.features.map((feature, index) => (
-                        <Typography key={index} variant="body2" sx={{ py: 0.5 }}>
-                          ✓ {feature}
-                        </Typography>
-                      ))}
-                    </CardContent>
-                    <CardActions>
-                      <MuiButton 
-                        fullWidth 
-                        variant={selectedPlan === plan.name ? "contained" : "outlined"}
-                        color="primary"
-                        onClick={() => handlePlanSelect(plan.name)}
-                      >
-                        {selectedPlan === plan.name ? 'Selected' : 'Select'}
-                      </MuiButton>
-                    </CardActions>
-                  </MuiCard>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        );
-      case 1:
+                    onApprove={async (_, actions) => {
+                      const details = await actions.order?.capture()
+                      handlePaymentSuccess(details)
+                    }}
+                  />
+                </PayPalScriptProvider>
+              )}
+
+              {activeTab === 1 && (
+                <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField
+                    label="MTN Mobile Number"
+                    variant="outlined"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    fullWidth
+                    required
+                  />
+                  <TextField
+                    label="Transaction PIN"
+                    type="password"
+                    variant="outlined"
+                    value={transactionPin}
+                    onChange={(e) => setTransactionPin(e.target.value)}
+                    fullWidth
+                    required
+                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                    <Button
+                      variant="outlined"
+                      onClick={handleBack}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={handleMTNPayment}
+                      disabled={!isPaymentFormValid() || isSubmitting}
+                    >
+                      {isSubmitting ? 'Processing...' : 'Pay with MTN'}
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        )
+      
+      case 2: // Finalize/Confirmation
         return (
-          <Box component="form" onSubmit={handlePaymentSubmit} sx={{ mt: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              Payment Method
-            </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  required
-                  id="cardName"
-                  label="Name on card"
-                  fullWidth
-                  autoComplete="cc-name"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  required
-                  id="cardNumber"
-                  label="Card number"
-                  fullWidth
-                  autoComplete="cc-number"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  required
-                  id="expDate"
-                  label="Expiry date"
-                  fullWidth
-                  autoComplete="cc-exp"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  required
-                  id="cvv"
-                  label="CVV"
-                  helperText="Last three digits on signature strip"
-                  fullWidth
-                  autoComplete="cc-csc"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Checkbox color="primary" name="saveCard" value="yes" />}
-                  label="Remember credit card details for next time"
-                />
-              </Grid>
-            </Grid>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <MuiButton onClick={handleBack} sx={{ mt: 3, ml: 1 }}>
-                Back
-              </MuiButton>
-              <MuiButton
-                variant="contained"
-                color="primary"
-                type="submit"
-                sx={{ mt: 3, ml: 1 }}
-              >
-                Place Order
-              </MuiButton>
-            </Box>
-          </Box>
-        );
-      case 2:
-        return (
-          <Box sx={{ mt: 4, textAlign: 'center' }}>
-            {paymentSuccess ? (
-              <Alert severity="success" sx={{ mb: 3 }}>
-                Payment successful! You will be redirected to the homepage.
-              </Alert>
-            ) : (
-              <Typography variant="h6" gutterBottom>
-                Processing payment...
-              </Typography>
-            )}
-            <Typography variant="subtitle1">
-              Thank you for your order.
-            </Typography>
-            <Typography variant="body1" sx={{ mt: 2 }}>
-              Your order confirmation has been sent to your email.
-            </Typography>
-          </Box>
-        );
+          <Card variant="outlined" sx={{ mt: 2 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Payment Confirmation</Typography>
+              
+              {paymentComplete ? (
+                <>
+                  <Alert severity="success" sx={{ mb: 2 }}>
+                    Payment completed successfully!
+                  </Alert>
+                  
+                  <Grid container spacing={2} sx={{ mt: 1 }}>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2">Customer ID</Typography>
+                      <Typography variant="body1">{customerId}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2">Company/Store</Typography>
+                      <Typography variant="body1">{companyName}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2">Amount</Typography>
+                      <Typography variant="body1">${subscriptionAmount.toFixed(2)} USD</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2">Payment Method</Typography>
+                      <Typography variant="body1">{activeTab === 0 ? 'PayPal' : 'MTN Mobile Money'}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle2">Transaction ID</Typography>
+                      <Typography variant="body1">{paymentId || 'Processing...'}</Typography>
+                    </Grid>
+                  </Grid>
+                  
+                  <Box sx={{ mt: 3, textAlign: 'center' }}>
+                    <Button 
+                      variant="contained" 
+                      color="primary"
+                      onClick={() => {
+                        // Reset the form
+                        setActiveStep(0)
+                        setCustomerId('')
+                        setCompanyName('')
+                        setPhoneNumber('')
+                        setTransactionPin('')
+                        setPaymentComplete(false)
+                      }}
+                    >
+                      Start New Payment
+                    </Button>
+                  </Box>
+                </>
+              ) : (
+                <>
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    Processing your payment...
+                  </Alert>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                    <Button
+                      variant="outlined"
+                      onClick={handleBack}
+                    >
+                      Back to Payment
+                    </Button>
+                  </Box>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )
+      
       default:
-        return 'Unknown step';
+        return 'Unknown step'
     }
-  };
+  }
 
   return (
-    <MuiContainer maxWidth="lg">
-      <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
-        <Typography component="h1" variant="h4" align="center" gutterBottom>
-          Subscription Checkout
-        </Typography>
-        <Stepper activeStep={activeStep} sx={{ pt: 3, pb: 5 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-        {getStepContent(activeStep)}
-        {activeStep === 0 && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-            <MuiButton
-              variant="contained"
-              color="primary"
-              onClick={handleNext}
-              disabled={!selectedPlan}
-            >
-              Next
-            </MuiButton>
-          </Box>
-        )}
-      </Paper>
-    </MuiContainer>
-  );
-};
-
-export default PaymentPage;
+    <Box sx={{ maxWidth: 700, mx: 'auto', mt: 4, px: 2 }}>
+      <Typography variant="h4" gutterBottom>Payment Process</Typography>
+      
+      <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+        <Step>
+          <StepLabel>Customer Info</StepLabel>
+        </Step>
+        <Step>
+          <StepLabel>Payment Options</StepLabel>
+        </Step>
+        <Step>
+          <StepLabel>Finalize</StepLabel>
+        </Step>
+      </Stepper>
+      
+      {getStepContent(activeStep)}
+    </Box>
+  )
+}

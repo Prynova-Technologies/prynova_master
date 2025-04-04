@@ -1,11 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -27,56 +21,59 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Check if user is already logged in on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
-    }
-  }, []);
+    // Check if user is authenticated on initial load
+    const checkAuth = () => {
+      const token = localStorage.getItem('authToken');
+      const userRole = localStorage.getItem('userRole');
+      const isAuth = !!token;
+      
+      setIsAuthenticated(isAuth);
+      setIsAdmin(userRole === 'admin' || userRole === 'super_admin');
+      setLoading(false);
+
+      // Only redirect authenticated users from login page to dashboard
+      if (isAuth && location.pathname === '/login') {
+        navigate('/admin/dashboard', { replace: true });
+      }
+    };
+    
+    checkAuth();
+  }, [location.pathname]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // This is a mock implementation
-      // In a real app, you would make an API call to your backend
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock successful login for demo purposes
-      // In production, this would be the response from your API
-      if (email === 'admin@example.com' && password === 'password') {
-        const userData: User = {
-          id: '1',
-          name: 'Admin User',
-          email: 'admin@example.com',
-          role: 'admin'
-        };
-        
-        // Store user data in localStorage
-        localStorage.setItem('user', JSON.stringify(userData));
-        
-        // Update state
-        setUser(userData);
-        setIsAuthenticated(true);
-        return true;
-      } else if (email === 'user@example.com' && password === 'password') {
-        const userData: User = {
-          id: '2',
-          name: 'Regular User',
-          email: 'user@example.com',
-          role: 'user'
-        };
-        
-        localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
-        setIsAuthenticated(true);
-        return true;
+      // Call the admin login API
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:7001/api'}/admins/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
       }
+
+      const data = await response.json();
       
-      return false;
+      // Store token and user role
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('userRole', data.admin.role);
+      
+      // Update authentication state
+      setIsAuthenticated(true);
+      setIsAdmin(['admin', 'super_admin'].includes(data.admin.role));
+      
+      return true;
     } catch (error) {
       console.error('Login error:', error);
       return false;
