@@ -118,7 +118,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', width: "100%" }}>
       <AppBar 
         position="fixed" 
         sx={{
@@ -181,12 +181,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       </Drawer>
       
       <Box
-        component="main"
+        // component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - ${drawerOpen ? drawerWidth : 0}px)` },
-          ml: { sm: drawerOpen ? `${drawerWidth}px` : 0 },
+          width: { lg: '100%', sm: drawerOpen ? `calc(100% - ${drawerWidth}px)` : '100%' },
+          ml: { lg: 0, sm: drawerOpen ? `${drawerWidth}px` : 0 },
           transition: (theme) => theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
