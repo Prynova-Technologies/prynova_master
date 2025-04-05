@@ -181,7 +181,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       </Drawer>
       
       <Box
-        component="main"
+        // component="main"
         sx={{
           flexGrow: 1,
           height: '100vh',

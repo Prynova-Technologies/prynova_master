@@ -35,7 +35,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requireAdmin = false })
     return <Navigate to="/login" replace />;
   }
 
-  // User is authenticated and has appropriate permissions
+  // User is authenticated (and is admin if required)
   return <Outlet />;
 
 };
