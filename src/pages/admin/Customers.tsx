@@ -6,6 +6,9 @@ import {
   TextField,
   InputAdornment,
   Button,
+  CircularProgress,
+  Alert,
+  Snackbar,
 } from '@mui/material';
 import { 
   Search as SearchIcon,
@@ -15,60 +18,47 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import CustomModal from '../../components/admin/CustomModal';
 import CustomerTable from '../../components/admin/CustomerTable';
 
+import { customerService, Customer } from '../../services/customerService';
+
 const Customers: React.FC = () => {
   // State for pagination and search
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [selectedCustomerId, setSelectedCustomerId] = React.useState<number | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = React.useState<string | null>(null);
   const [modalOpen, setModalOpen] = React.useState(false);
   const [modalMode, setModalMode] = React.useState<'add' | 'edit' | 'delete'>('add');
-  const [selectedCustomer, setSelectedCustomer] = React.useState<any>(null);
+  const [selectedCustomer, setSelectedCustomer] = React.useState<Customer | null>(null);
+  
+  // State for data management
+  const [customers, setCustomers] = React.useState<Customer[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [snackbar, setSnackbar] = React.useState<{open: boolean; message: string; severity: 'success' | 'error'}>({ 
+    open: false, 
+    message: '', 
+    severity: 'success' 
+  });
 
-  interface Customer {
-    id: string;
-    companyName: string;
-    email: string;
-    contactPhone: string;
-    contactPerson: string;
-    subscribedApp: string;
-    subscriptionAmount: number;
-    subscriptionDuration: number;
-    subscriptionStartDate: string;
-    subscriptionEndDate: string;
-    status: string;
-  }
+  // Fetch customers on component mount
+  React.useEffect(() => {
+    fetchCustomers();
+  }, []);
 
-  // Mock data for customers
-  const customers: Customer[] = [
-    {
-      id: '1',
-      companyName: 'Acme Inc.',
-      email: 'contact@acme.com',
-      contactPhone: '+1-555-0123',
-      contactPerson: 'John Doe',
-      subscribedApp: 'POS System',
-      subscriptionAmount: 99.99,
-      subscriptionDuration: 12,
-      subscriptionStartDate: '2023-01-01',
-      subscriptionEndDate: '2023-12-31',
-      status: 'active'
-    },
-    {
-      id: '2',
-      companyName: 'XYZ Corp',
-      email: 'info@xyz.com',
-      contactPhone: '+1-555-0124',
-      contactPerson: 'Jane Smith',
-      subscribedApp: 'Analytics System',
-      subscriptionAmount: 149.99,
-      subscriptionDuration: 12,
-      subscriptionStartDate: '2023-02-01',
-      subscriptionEndDate: '2024-01-31',
-      status: 'active'
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await customerService.getAllCustomers();
+      setCustomers(data);
+    } catch (err) {
+      setError('Failed to fetch customers');
+      console.error('Error fetching customers:', err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   // Handle page change
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -104,9 +94,56 @@ const Customers: React.FC = () => {
     setSelectedCustomer(null);
   };
 
-  const handleModalSubmit = (data: any) => {
-    console.log('Form submitted:', data);
-    // Here you would typically make an API call to save the data
+  const handleModalSubmit = async (data: Omit<Customer, 'id'>) => {
+    try {
+      setLoading(true);
+      if (modalMode === 'add') {
+        await customerService.createCustomer(data);
+        setSnackbar({ open: true, message: 'Customer created successfully', severity: 'success' });
+      } else if (modalMode === 'edit' && selectedCustomer) {
+        await customerService.updateCustomer(selectedCustomer._id, data);
+        setSnackbar({ open: true, message: 'Customer updated successfully', severity: 'success' });
+      } else if (modalMode === 'delete' && selectedCustomer) {
+        await customerService.deleteCustomer(selectedCustomer._id);
+        setSnackbar({ open: true, message: 'Customer deleted successfully', severity: 'success' });
+      }
+      await fetchCustomers(); // Refresh the list
+      handleModalClose();
+    } catch (err: any) {
+      console.error('Error handling customer:', err);
+      const errorMessage = err.response?.data?.message || `Failed to ${modalMode} customer`;
+      setSnackbar({ 
+        open: true, 
+        message: errorMessage, 
+        severity: 'error' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBlockCustomer = async (customer: Customer) => {
+    try {
+      setLoading(true);
+      const newStatus = customer.status === 'blocked' ? false : true;
+      await customerService.toggleCustomerStatus(customer._id, newStatus);
+      setSnackbar({ 
+        open: true, 
+        message: `Customer ${newStatus ? 'blocked' : 'unblocked'} successfully`, 
+        severity: 'success' 
+      });
+      await fetchCustomers(); // Refresh the list
+    } catch (err: any) {
+      console.error('Error blocking/unblocking customer:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to update customer status';
+      setSnackbar({ 
+        open: true, 
+        message: errorMessage, 
+        severity: 'error' 
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Filter customers based on search term
@@ -116,8 +153,17 @@ const Customers: React.FC = () => {
     customer.contactPerson.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   return (
     <AdminLayout>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom component="h1">
           Customers
@@ -154,12 +200,33 @@ const Customers: React.FC = () => {
       </Box>
       
       <Paper elevation={2}>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
           <CustomerTable
             customers={filteredCustomers}
             onEdit={(customer) => handleModalOpen('edit', customer)}
             onDelete={(customer) => handleModalOpen('delete', customer)}
+            onBlock={handleBlockCustomer}
           />
-        </Paper>
+        )}
+      </Paper>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert 
+          onClose={handleSnackbarClose} 
+          severity={snackbar.severity} 
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
 
         <CustomModal
           open={modalOpen}

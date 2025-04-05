@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -14,8 +15,10 @@ import {
   Chip,
   Grid,
   Button,
-  Stack,
   Tooltip,
+  TablePagination,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -23,7 +26,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import BlockIcon from '@mui/icons-material/Block';
 import DeleteIcon from '@mui/icons-material/Delete';
 import StorageIcon from '@mui/icons-material/Storage';
-import AddIcon from '@mui/icons-material/Add';
 
 interface CustomerData {
   id: string;
@@ -37,6 +39,7 @@ interface CustomerData {
   subscriptionStartDate: string;
   subscriptionEndDate: string;
   status: string;
+  isSubscribed: boolean;
   dbName?: string;
   customerId?: string;
   paymentId?: string;
@@ -46,9 +49,17 @@ interface CustomerTableProps {
   customers: CustomerData[];
   onEdit?: (customer: CustomerData) => void;
   onDelete?: (customer: CustomerData) => void;
+  onBlock?: (customer: CustomerData) => void;
+  error?: string | null;
 }
 
-const Row: React.FC<{ customer: CustomerData; onEdit?: (customer: CustomerData) => void; onDelete?: (customer: CustomerData) => void }> = ({ customer, onEdit, onDelete }) => {
+const Row: React.FC<{ 
+  customer: CustomerData; 
+  onEdit?: (customer: CustomerData) => void; 
+  onDelete?: (customer: CustomerData) => void;
+  onBlock?: (customer: CustomerData) => void;
+}> = ({ customer, onEdit, onDelete, onBlock }) => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
@@ -82,6 +93,38 @@ const Row: React.FC<{ customer: CustomerData; onEdit?: (customer: CustomerData) 
         <TableCell>{customer.contactPerson}</TableCell>
         <TableCell>{customer.email}</TableCell>
         <TableCell>{customer.subscribedApp}</TableCell>
+        <TableCell>
+          <Chip
+            label={(() => {
+              if (!customer.subscriptionStartDate || !customer.subscriptionEndDate) return 'Not Subscribed';
+              const endDate = new Date(customer.subscriptionEndDate);
+              const now = new Date();
+              const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+              
+              if (daysUntilExpiry < 0) return 'Expired';
+              if (daysUntilExpiry <= 30) return 'Expiring Soon';
+              return 'Active';
+            })()}
+            color={(() => {
+              if (!customer.subscriptionStartDate || !customer.subscriptionEndDate) return 'error';
+              const endDate = new Date(customer.subscriptionEndDate);
+              const now = new Date();
+              const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+              
+              if (daysUntilExpiry < 0) return 'error';
+              if (daysUntilExpiry <= 30) return 'warning';
+              return 'success';
+            })() as 'success' | 'warning' | 'error'}
+            size="small"
+          />
+        </TableCell>
+        <TableCell>
+          <Chip
+            label={customer.isSubscribed ? 'Subscribed' : 'Not Subscribed'}
+            color={customer.isSubscribed ? 'success' : 'error'}
+            size="small"
+          />
+        </TableCell>
         <TableCell>
           <Chip
             label={customer.status}
@@ -139,6 +182,17 @@ const Row: React.FC<{ customer: CustomerData; onEdit?: (customer: CustomerData) 
                 </Grid>
               </Grid>
               <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                <Tooltip title="View database information">
+                  <Button
+                    startIcon={<StorageIcon />}
+                    variant="outlined"
+                    color="info"
+                    size="small"
+                    onClick={() => navigate(`/admin/customerdb?customerId=${customer.customerId}&companyName=${encodeURIComponent(customer.companyName)}`)}
+                  >
+                    View DB
+                  </Button>
+                </Tooltip>
                 <Tooltip title="Edit customer">
                   <Button
                     startIcon={<EditIcon />}
@@ -149,14 +203,15 @@ const Row: React.FC<{ customer: CustomerData; onEdit?: (customer: CustomerData) 
                     Edit
                   </Button>
                 </Tooltip>
-                <Tooltip title="Block customer">
+                <Tooltip title={`${customer.status === 'blocked' ? 'Unblock' : 'Block'} customer`}>
                   <Button
                     startIcon={<BlockIcon />}
                     variant="outlined"
-                    color="warning"
+                    color={customer.status === 'blocked' ? 'success' : 'warning'}
                     size="small"
+                    onClick={() => onBlock?.(customer)}
                   >
-                    Block
+                    {customer.status === 'blocked' ? 'Unblock' : 'Block'}
                   </Button>
                 </Tooltip>
                 <Tooltip title="Delete customer">
@@ -170,16 +225,6 @@ const Row: React.FC<{ customer: CustomerData; onEdit?: (customer: CustomerData) 
                     Delete
                   </Button>
                 </Tooltip>
-                <Tooltip title="View database">
-                  <Button
-                    startIcon={<StorageIcon />}
-                    variant="outlined"
-                    color="info"
-                    size="small"
-                  >
-                    View DB
-                  </Button>
-                </Tooltip>
               </Box>
             </Box>
           </Collapse>
@@ -189,32 +234,79 @@ const Row: React.FC<{ customer: CustomerData; onEdit?: (customer: CustomerData) 
   );
 };
 
-const CustomerTable: React.FC<CustomerTableProps> = ({ customers, onEdit, onDelete }) => {
+const CustomerTable: React.FC<CustomerTableProps> = ({ customers, onEdit, onDelete, onBlock, error }) => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  React.useEffect(() => {
+    if (error) {
+      setSnackbarOpen(true);
+    }
+  }, [error]);
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
+  // Calculate the current page of data
+  const startIndex = page * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const displayedCustomers = customers.slice(startIndex, endIndex);
+
   return (
-    <TableContainer component={Paper} sx={{ mt: 2 }}>
-      <Table aria-label="customer table">
-        <TableHead>
-          <TableRow>
-            <TableCell style={{ width: '50px' }} />
-            <TableCell>Company Name</TableCell>
-            <TableCell>Contact Person</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Subscribed App</TableCell>
-            <TableCell>Status</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {customers.map((customer) => (
-            <Row
-              key={customer.id}
-              customer={customer}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          ))}          
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <>
+      <TableContainer component={Paper} sx={{ mt: 2 }}>
+        <Table aria-label="customer table">
+          <TableHead>
+            <TableRow>
+              <TableCell style={{ width: '50px' }} />
+              <TableCell>Company Name</TableCell>
+              <TableCell>Contact Person</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Subscribed App</TableCell>
+              <TableCell>Subscription Status</TableCell>
+              <TableCell>Subscription</TableCell>
+              <TableCell>Status</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {displayedCustomers.map((customer) => (
+              <Row
+                key={customer.id}
+                customer={customer}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onBlock={onBlock}
+              />
+            ))}          
+          </TableBody>
+        </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={customers.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </TableContainer>
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
 

@@ -20,6 +20,7 @@ import { ThemeProvider } from './context/ThemeContext'
 const AdminDashboard = React.lazy(() => import('./pages/admin/Dashboard'))
 const Apps = React.lazy(() => import('./pages/admin/Apps'))
 const Customers = React.lazy(() => import('./pages/admin/Customers'))
+const CustomerDB = React.lazy(() => import('./pages/admin/CustomerDB'))
 const Subscriptions = React.lazy(() => import('./pages/admin/Subscriptions'))
 const Users = React.lazy(() => import('./pages/admin/Users'))
 const Settings = React.lazy(() => import('./pages/admin/Settings'))
@@ -93,6 +94,18 @@ function App() {
                     <CircularProgress />
                 </Box>}>
                   <Subscriptions />
+                </Suspense>
+              } />
+              <Route path="/admin/customerdb" element={
+                <Suspense fallback={<Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    minHeight="100vh"
+                >
+                    <CircularProgress />
+                </Box>}>
+                  <CustomerDB />
                 </Suspense>
               } />
               <Route path="/admin/users" element={

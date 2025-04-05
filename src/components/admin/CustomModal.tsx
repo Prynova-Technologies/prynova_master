@@ -19,11 +19,10 @@ interface CustomerFormData {
   email: string;
   contactPhone: string;
   contactPerson: string;
+  agent: string;
   subscribedApp: string;
   subscriptionAmount: number;
   subscriptionDuration: number;
-  subscriptionStartDate: string;
-  subscriptionEndDate: string;
   status: string;
 }
 
@@ -45,17 +44,32 @@ const CustomModal: React.FC<CustomModalProps> = ({
   onSubmit,
 }) => {
   const [formData, setFormData] = React.useState<CustomerFormData>({
-    companyName: data?.companyName || '',
-    email: data?.email || '',
-    contactPhone: data?.contactPhone || '',
-    contactPerson: data?.contactPerson || '',
-    subscribedApp: data?.subscribedApp || 'POS System',
-    subscriptionAmount: data?.subscriptionAmount || 99.99,
-    subscriptionDuration: data?.subscriptionDuration || 12,
-    subscriptionStartDate: data?.subscriptionStartDate || new Date().toISOString().split('T')[0],
-    subscriptionEndDate: data?.subscriptionEndDate || new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-    status: data?.status || 'active',
+    companyName: '',
+    email: '',
+    contactPhone: '',
+    contactPerson: '',
+    agent: '',
+    subscribedApp: 'POS System',
+    subscriptionAmount: 0.00,
+    subscriptionDuration: 1,
+    status: 'active',
   });
+
+  React.useEffect(() => {
+    if (data && mode === 'edit') {
+      setFormData({
+        companyName: data.companyName,
+        email: data.email,
+        contactPhone: data.contactPhone,
+        contactPerson: data.contactPerson,
+        agent: data.agent,
+        subscribedApp: data.subscribedApp,
+        subscriptionAmount: data.subscriptionAmount,
+        subscriptionDuration: data.subscriptionDuration,
+        status: data.status,
+      });
+    }
+  }, [data, mode]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target;
@@ -131,6 +145,15 @@ const CustomModal: React.FC<CustomModalProps> = ({
             onChange={handleChange}
             required
           />
+          <TextField
+            size="small"
+            fullWidth
+            label="Agent"
+            name="agent"
+            value={formData.agent}
+            onChange={handleChange}
+            required
+          />
           <FormControl fullWidth size="small">
             <InputLabel>Subscribed App</InputLabel>
             <Select
@@ -169,28 +192,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
             onChange={handleChange}
             required
           />
-          <TextField
-            size="small"
-            fullWidth
-            label="Subscription Start Date"
-            name="subscriptionStartDate"
-            type="date"
-            value={formData.subscriptionStartDate}
-            onChange={handleChange}
-            required
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            size="small"
-            fullWidth
-            label="Subscription End Date"
-            name="subscriptionEndDate"
-            type="date"
-            value={formData.subscriptionEndDate}
-            onChange={handleChange}
-            required
-            InputLabelProps={{ shrink: true }}
-          />
+
           <FormControl fullWidth size="small">
             <InputLabel>Status</InputLabel>
             <Select
