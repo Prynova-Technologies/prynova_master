@@ -2,10 +2,11 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AuthContextType {
-  user: User | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,15 +19,17 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check if user is already logged in on mount
   useEffect(() => {
     // Check if user is authenticated on initial load
     const checkAuth = () => {
@@ -81,19 +84,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    // Remove user data from localStorage
-    localStorage.removeItem('user');
-    
-    // Update state
-    setUser(null);
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userRole');
     setIsAuthenticated(false);
+    setIsAdmin(false);
   };
 
   const value = {
-    user,
     isAuthenticated,
+    isAdmin,
     login,
-    logout
+    logout,
+    loading
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
