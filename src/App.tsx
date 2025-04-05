@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { CssBaseline } from '@mui/material'
+import { Box, CircularProgress, CssBaseline } from '@mui/material';
 import React, { Suspense } from 'react'
 import './App.css'
 
@@ -45,32 +45,76 @@ function App() {
             {/* Admin routes */}
             <Route element={<ProtectedRoute requireAdmin={true} />}>
               <Route path="/admin/dashboard" element={
-                <Suspense fallback={<div>Loading...</div>}>
+                <Suspense fallback={
+                    <Box
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                        minHeight="100vh"
+                    >
+                        <CircularProgress />
+                    </Box>
+                }>
                   <AdminDashboard />
                 </Suspense>
               } />
               <Route path="/admin/apps" element={
-                <Suspense fallback={<div>Loading...</div>}>
+                <Suspense fallback={<Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    minHeight="100vh"
+                >
+                    <CircularProgress />
+                </Box>}>
                   <Apps />
                 </Suspense>
               } />
               <Route path="/admin/customers" element={
-                <Suspense fallback={<div>Loading...</div>}>
+                <Suspense fallback={<Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    minHeight="100vh"
+                >
+                    <CircularProgress />
+                </Box>}>
                   <Customers />
                 </Suspense>
               } />
               <Route path="/admin/subscriptions" element={
-                <Suspense fallback={<div>Loading...</div>}>
+                <Suspense fallback={<Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    minHeight="100vh"
+                >
+                    <CircularProgress />
+                </Box>}>
                   <Subscriptions />
                 </Suspense>
               } />
               <Route path="/admin/users" element={
-                <Suspense fallback={<div>Loading...</div>}>
+                <Suspense fallback={<Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    minHeight="100vh"
+                >
+                    <CircularProgress />
+                </Box>}>
                   <Users />
                 </Suspense>
               } />
               <Route path="/admin/settings" element={
-                <Suspense fallback={<div>Loading...</div>}>
+                <Suspense fallback={<Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    minHeight="100vh"
+                >
+                    <CircularProgress />
+                </Box>}>
                   <Settings />
                 </Suspense>
               } />

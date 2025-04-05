@@ -118,7 +118,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
       <AppBar 
         position="fixed" 
         sx={{
@@ -184,17 +184,29 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${drawerOpen ? drawerWidth : 0}px)` },
-          ml: { sm: drawerOpen ? `${drawerWidth}px` : 0 },
+          height: '100vh',
+          overflow: 'auto',
+          position: 'relative',
+          width: drawerOpen ? `calc(100% - ${drawerWidth}px)` : '100%',
+          // width: drawerOpen ? `calc(100% - ${drawerWidth}px)` : '100%',
+          // marginLeft: drawerOpen ? `${drawerWidth}px` : 0,
           transition: (theme) => theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.enteringScreen,
           }),
+          backgroundColor: 'background.default'
         }}
       >
         <Toolbar /> {/* This creates space for the AppBar */}
-        <Container>
+        <Container maxWidth="lg" sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          py: 3,
+          px: 2,
+          height: 'calc(100vh - 64px)',
+          mt: '64px'
+        }}>
           {children}
         </Container>
       </Box>
