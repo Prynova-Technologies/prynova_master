@@ -63,7 +63,9 @@ export const customerApi = {
   getCustomerDBInfo: async (customerId: string, companyName: string) => {
     try {
       const response = await api.get(`/sync/db-info?customerId=${customerId}&businessName=${encodeURIComponent(companyName)}`);
+      
       return response.data;
+      
     } catch (error) {
       console.error('Error getting database information:', error);
       throw error;

@@ -173,7 +173,14 @@ const Customers: React.FC = () => {
           Manage your customer accounts
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 2, 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          width: '100%',
+          mb: 2 
+        }}>
           <TextField
             variant="outlined"
             placeholder="Search customers..."
