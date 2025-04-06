@@ -8,8 +8,8 @@ import {
   Button,
   CircularProgress,
   Alert,
-  Snackbar,
 } from '@mui/material';
+import SnackbarComponent from '../../components/common/SnackbarComponent';
 import { 
   Search as SearchIcon,
   Add as AddIcon,
@@ -53,7 +53,11 @@ const Customers: React.FC = () => {
       const data = await customerService.getAllCustomers();
       setCustomers(data);
     } catch (err) {
-      setError('Failed to fetch customers');
+      setSnackbar({
+        open: true,
+        message: 'Failed to fetch customers',
+        severity: 'error'
+      });
       console.error('Error fetching customers:', err);
     } finally {
       setLoading(false);
@@ -159,11 +163,6 @@ const Customers: React.FC = () => {
 
   return (
     <AdminLayout>
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom component="h1">
           Customers
@@ -221,19 +220,12 @@ const Customers: React.FC = () => {
         )}
       </Paper>
 
-      <Snackbar
+      <SnackbarComponent
         open={snackbar.open}
-        autoHideDuration={6000}
+        message={snackbar.message}
+        severity={snackbar.severity}
         onClose={handleSnackbarClose}
-      >
-        <Alert 
-          onClose={handleSnackbarClose} 
-          severity={snackbar.severity} 
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      />
 
         <CustomModal
           open={modalOpen}

@@ -72,7 +72,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
     { text: 'Apps', icon: <AppsIcon />, path: '/admin/apps' },
     { text: 'Customers', icon: <CustomersIcon />, path: '/admin/customers' },
-    { text: 'Subscriptions', icon: <SubscriptionsIcon />, path: '/admin/subscriptions' },
+    { text: 'Transactions', icon: <SubscriptionsIcon />, path: '/admin/subscriptions' },
     { text: 'Users', icon: <UsersIcon />, path: '/admin/users' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/admin/settings' },
   ];

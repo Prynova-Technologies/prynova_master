@@ -10,8 +10,44 @@ const api = axios.create({
   }
 });
 
+// Add request interceptor to include auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Payment API endpoints
 export const paymentApi = {
+  // Get all payments with optional filters
+  getAllPayments: async (filters?: {
+    startDate?: string;
+    endDate?: string;
+    status?: string;
+    search?: string;
+  }) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters?.startDate) queryParams.append('startDate', filters.startDate);
+      if (filters?.endDate) queryParams.append('endDate', filters.endDate);
+      if (filters?.status) queryParams.append('status', filters.status);
+      if (filters?.search) queryParams.append('search', filters.search);
+
+      const response = await api.get(`/payments?${queryParams.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+      throw error;
+    }
+  },
+
   // Create a PayPal order
   createOrder: async (customerId: string) => {
     try {
@@ -41,6 +77,17 @@ export const paymentApi = {
       return response.data;
     } catch (error) {
       console.error('Error getting subscription details:', error);
+      throw error;
+    }
+  },
+
+  // Get payment details by ID
+  getPaymentById: async (paymentId: string) => {
+    try {
+      const response = await api.get(`/payments/${paymentId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting payment details:', error);
       throw error;
     }
   }

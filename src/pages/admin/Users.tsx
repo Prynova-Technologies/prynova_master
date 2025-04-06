@@ -15,38 +15,59 @@ import {
   InputAdornment,
   IconButton,
   Tooltip,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-} from '@mui/material';
+  Button,
+  Alert, } from '@mui/material';
 import {
   Search as SearchIcon,
-  MoreVert as MoreVertIcon,
+  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Block as BlockIcon,
 } from '@mui/icons-material';
 import AdminLayout from '../../components/admin/AdminLayout';
+import UserModal from '../../components/admin/UserModal';
+import { userApi, User } from '../../services/userService';
+import SnackbarComponent from '../../components/common/SnackbarComponent';
 
 const Users: React.FC = () => {
   // State for pagination and search
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [selectedUserId, setSelectedUserId] = React.useState<number | null>(null);
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [modalMode, setModalMode] = React.useState<'add' | 'edit' | 'delete'>('add');
+  const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
 
-  // Mock data for users
-  const users = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin', status: 'active', lastLogin: '2023-06-15 10:30 AM' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Editor', status: 'active', lastLogin: '2023-06-14 09:45 AM' },
-    { id: 3, name: 'Robert Johnson', email: 'robert@example.com', role: 'Viewer', status: 'inactive', lastLogin: '2023-06-10 02:15 PM' },
-    { id: 4, name: 'Emily Davis', email: 'emily@example.com', role: 'Admin', status: 'active', lastLogin: '2023-06-15 08:20 AM' },
-    { id: 5, name: 'Michael Wilson', email: 'michael@example.com', role: 'Editor', status: 'suspended', lastLogin: '2023-06-05 11:10 AM' },
-    { id: 6, name: 'Sarah Brown', email: 'sarah@example.com', role: 'Viewer', status: 'active', lastLogin: '2023-06-14 03:30 PM' },
-    { id: 7, name: 'David Miller', email: 'david@example.com', role: 'Editor', status: 'inactive', lastLogin: '2023-06-08 10:45 AM' },
-  ];
+  // State for users data
+  const [users, setUsers] = React.useState<User[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [snackbar, setSnackbar] = React.useState<{open: boolean; message: string; severity: 'success' | 'error'}>({ 
+    open: false, 
+    message: '', 
+    severity: 'success' 
+  });
+
+  // Fetch users from API
+  const fetchUsers = async () => {
+    try {
+      const data = await userApi.getAllUsers();
+      setUsers(data);
+      setError(null);
+    } catch (err: any) {
+      setSnackbar({
+        open: true,
+        message: err.message || 'Failed to fetch users',
+        severity: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchUsers();
+  }, []);
+
 
   // Handle page change
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -59,23 +80,69 @@ const Users: React.FC = () => {
     setPage(0);
   };
 
-  // Handle menu open
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, userId: number) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedUserId(userId);
+  // Handle modal operations
+  const handleModalOpen = (mode: 'add' | 'edit' | 'delete', user?: any) => {
+    setModalMode(mode);
+    setSelectedUser(user || null);
+    setModalOpen(true);
   };
 
-  // Handle menu close
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedUserId(null);
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleModalSubmit = async (formData: any) => {
+    try {
+      // Format the user data to match the User interface
+      const userData: User = {
+        username: formData.name,
+        email: formData.email,
+        role: formData.role.toLowerCase(), // Convert role to lowercase
+        status: formData.status,
+        password: formData.password, // Only included for new users
+      };
+
+      switch (modalMode) {
+        case 'add':
+          if (!userData.password) {
+            throw new Error('Password is required for new users');
+          }
+          await userApi.createUser(userData);
+          setSnackbar({ open: true, message: 'User created successfully', severity: 'success' });
+          break;
+        case 'edit':
+          if (selectedUser?._id) {
+            // Remove password from update data
+            const { password, ...updateData } = userData;
+            await userApi.updateUser(selectedUser._id, updateData);
+            setSnackbar({ open: true, message: 'User updated successfully', severity: 'success' });
+          }
+          break;
+        case 'delete':
+          if (selectedUser?._id) {
+            await userApi.deleteUser(selectedUser._id);
+            setSnackbar({ open: true, message: 'User deleted successfully', severity: 'success' });
+          }
+          break;
+      }
+      fetchUsers(); // Refresh the users list
+      handleModalClose();
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || `Failed to ${modalMode} user`;
+      setSnackbar({ 
+        open: true, 
+        message: errorMessage, 
+        severity: 'error' 
+      });
+    }
   };
 
   // Filter users based on search term
   const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.role.toLowerCase().includes(searchTerm.toLowerCase())
+    (user?.username?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (user?.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (user?.role?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
   // Get status chip color based on status
@@ -92,6 +159,10 @@ const Users: React.FC = () => {
     }
   };
 
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   return (
     <AdminLayout>
       <Typography variant="h4" gutterBottom component="h1">
@@ -103,22 +174,37 @@ const Users: React.FC = () => {
           Manage user accounts and permissions
         </Typography>
         
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Search users..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ maxWidth: 500 }}
-          size="small"
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
-          }}
-        />
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 2, 
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          mb: 2 
+        }}>
+          <TextField
+            variant="outlined"
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{ width: 300 }}
+            size="small"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleModalOpen('add')}
+          >
+            Add User
+          </Button>
+        </Box>
       </Box>
       
       <Paper elevation={2}>
@@ -126,11 +212,10 @@ const Users: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
+                <TableCell>User Name</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Role</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell>Last Login</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -139,7 +224,7 @@ const Users: React.FC = () => {
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((user) => (
                   <TableRow key={user.id} hover>
-                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.username}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.role}</TableCell>
                     <TableCell>
@@ -149,16 +234,27 @@ const Users: React.FC = () => {
                         size="small"
                       />
                     </TableCell>
-                    <TableCell>{user.lastLogin}</TableCell>
                     <TableCell align="right">
-                      <Tooltip title="More actions">
-                        <IconButton 
-                          size="small" 
-                          onClick={(e) => handleMenuOpen(e, user.id)}
-                        >
-                          <MoreVertIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                        <Tooltip title="Edit user">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleModalOpen('edit', user)}
+                            color="primary"
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete user">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleModalOpen('delete', user)}
+                            color="error"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </TableCell>
                   </TableRow>
               ))}
@@ -176,32 +272,23 @@ const Users: React.FC = () => {
         />
       </Paper>
 
-      {/* Actions Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        onClick={handleMenuClose}
-      >
-        <MenuItem>
-          <ListItemIcon>
-            <EditIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Edit</ListItemText>
-        </MenuItem>
-        <MenuItem>
-          <ListItemIcon>
-            <BlockIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Suspend</ListItemText>
-        </MenuItem>
-        <MenuItem>
-          <ListItemIcon>
-            <DeleteIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Delete</ListItemText>
-        </MenuItem>
-      </Menu>
+
+      {/* User Modal */}
+      <UserModal
+        open={modalOpen}
+        onClose={handleModalClose}
+        title={modalMode === 'add' ? 'Add New User' : modalMode === 'edit' ? 'Edit User' : 'Delete User'}
+        mode={modalMode}
+        data={selectedUser}
+        onSubmit={handleModalSubmit}
+      />
+
+      <SnackbarComponent
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleSnackbarClose}
+      />
     </AdminLayout>
   );
 };
