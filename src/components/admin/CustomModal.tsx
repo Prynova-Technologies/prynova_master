@@ -12,7 +12,9 @@ import {
   MenuItem,
   Box,
   Typography,
+  CircularProgress,
 } from '@mui/material';
+import appService, { App } from '../../services/appService';
 
 interface CustomerFormData {
   companyName: string;
@@ -43,6 +45,26 @@ const CustomModal: React.FC<CustomModalProps> = ({
   data,
   onSubmit,
 }) => {
+  const [apps, setApps] = React.useState<App[]>([]);
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    const fetchApps = async () => {
+      if (open) {
+        setLoading(true);
+        try {
+          const appsData = await appService.getAllApps();
+          setApps(appsData);
+        } catch (error) {
+          console.error('Error fetching apps:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    fetchApps();
+  }, [open]);
+
   const [formData, setFormData] = React.useState<CustomerFormData>({
     companyName: '',
     email: '',
@@ -161,12 +183,19 @@ const CustomModal: React.FC<CustomModalProps> = ({
               value={formData.subscribedApp}
               label="Subscribed App"
               onChange={handleChange}
+              disabled={loading}
             >
-              <MenuItem value="POS System">POS System</MenuItem>
-              <MenuItem value="Analytics System">Analytics System</MenuItem>
-              <MenuItem value="Restaurant System">Restaurant System</MenuItem>
-              <MenuItem value="Hotel System">Hotel System</MenuItem>
-              <MenuItem value="School System">School System</MenuItem>
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : (
+                apps.map((app) => (
+                  <MenuItem key={app.id} value={app.appName}>
+                    {app.appName}
+                  </MenuItem>
+                ))
+              )}
             </Select>
           </FormControl>
           <TextField
