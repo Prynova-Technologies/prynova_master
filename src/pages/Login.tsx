@@ -59,15 +59,21 @@ const Login: React.FC = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <Container component="main" maxWidth="xs" sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh'
+    }}>
       <Paper 
         elevation={3} 
         sx={{
-          marginTop: 8,
           padding: 4,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          width: '100%'
         }}
       >
         <Box 
@@ -124,25 +130,8 @@ const Login: React.FC = () => {
           >
             Sign In
           </Button>
-          <Grid container>
-            <Grid item xs>
-              <Link href="#" variant="body2">
-                Forgot password?
-              </Link>
-            </Grid>
-            <Grid item>
-              <Link href="#" variant="body2">
-                {"Don't have an account? Sign Up"}
-              </Link>
-            </Grid>
-          </Grid>
         </Box>
       </Paper>
-      <Box sx={{ mt: 2, textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
-          Demo credentials: admin@prynova.com / admin123
-        </Typography>
-      </Box>
     </Container>
   );
 };

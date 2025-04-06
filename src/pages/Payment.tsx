@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 import { paymentApi } from '../services/api'
+import { useNavigate } from 'react-router-dom'
 import { 
   Box, 
   Typography, 
@@ -15,10 +16,17 @@ import {
   Card,
   CardContent,
   Grid,
-  Alert
+  Alert,
+  CircularProgress,
+  IconButton,
+  Tooltip
 } from '@mui/material'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import SnackbarComponent from '../components/common/SnackbarComponent'
 
 export default function Payment() {
+  const navigate = useNavigate()
+  
   // Step management
   const [activeStep, setActiveStep] = useState(0)
   
@@ -27,6 +35,8 @@ export default function Payment() {
   const [companyName, setCompanyName] = useState('')
   const [subscriptionAmount, setSubscriptionAmount] = useState(0)
   const [paymentId, setPaymentId] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [snackbar, setSnackbar] = useState<{open: boolean; message: string; severity: 'success' | 'error'}>({open: false, message: '', severity: 'success'})
   
   // Payment method (Step 2)
   const [activeTab, setActiveTab] = useState(0)
@@ -39,39 +49,61 @@ export default function Payment() {
 
   const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID
 
-  // Fetch customer subscription amount when customerId changes in step 1
-  useEffect(() => {
-    if (customerId && activeStep === 1) {
-      const fetchSubscriptionDetails = async () => {
-        try {
-          const details = await paymentApi.getSubscriptionDetails(customerId)
-          setSubscriptionAmount(details.subscriptionAmount)
-          setCompanyName(details.companyName)
-        } catch (error) {
-          console.error('Error fetching subscription details:', error)
-          // Handle error - could show an alert
-        }
+  // Handle next step navigation
+  const handleNext = async () => {
+    if (activeStep === 0) {
+      setLoading(true)
+      try {
+        const details = await paymentApi.getSubscriptionDetails(customerId)
+        setSubscriptionAmount(details.subscriptionAmount)
+        setCompanyName(details.companyName)
+        setActiveStep((prevStep) => prevStep + 1)
+      } catch (error) {
+        console.error('Error fetching subscription details:', error)
+        setSnackbar({
+          open: true,
+          message: error.response?.data?.message || 'Failed to fetch customer details',
+          severity: 'error'
+        })
+      } finally {
+        setLoading(false)
       }
-      
-      fetchSubscriptionDetails()
+    } else {
+      setActiveStep((prevStep) => prevStep + 1)
     }
-  }, [customerId, activeStep])
+  }
+
+  // Handle previous step navigation
+  const handleBack = () => {
+    setActiveStep((prevStep) => prevStep - 1)
+  }
+
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false })
+  }
 
   const handlePaymentSuccess = async (details: any) => {
     try {
-      console.log('Payment completed:', details)
-      
       // Capture the payment through our backend
       const response = await paymentApi.capturePayment(details.id, customerId)
       
       // Store the payment ID from the response
       setPaymentId(response.paymentId)
       
+      // Fetch updated customer information
+      const customerDetails = await paymentApi.getSubscriptionDetails(customerId)
+      setSubscriptionAmount(customerDetails.subscriptionAmount)
+      setCompanyName(customerDetails.companyName)
+      
       setPaymentComplete(true)
       setActiveStep(2) // Move to final step
     } catch (error) {
       console.error('Error processing payment:', error)
-      // Handle payment error
+      setSnackbar({
+        open: true,
+        message: 'Error processing payment. Please try again.',
+        severity: 'error'
+      })
     }
   }
 
@@ -89,16 +121,6 @@ export default function Payment() {
       setPaymentComplete(true)
       setActiveStep(2) // Move to final step
     }, 1500)
-  }
-
-  // Handle next step navigation
-  const handleNext = () => {
-    setActiveStep((prevStep) => prevStep + 1)
-  }
-
-  // Handle previous step navigation
-  const handleBack = () => {
-    setActiveStep((prevStep) => prevStep - 1)
   }
 
   // Check if customer info form is valid
@@ -132,6 +154,7 @@ export default function Payment() {
                   onChange={(e) => setCustomerId(e.target.value)}
                   required
                   fullWidth
+                  disabled={loading}
                 />
                 <TextField
                   label="Company/Store Name"
@@ -140,15 +163,20 @@ export default function Payment() {
                   onChange={(e) => setCompanyName(e.target.value)}
                   required
                   fullWidth
+                  disabled={loading}
                 />
                 <Button
                   variant="contained"
                   color="primary"
                   onClick={handleNext}
-                  disabled={!isCustomerInfoValid}
+                  disabled={!isCustomerInfoValid || loading}
                   sx={{ mt: 2 }}
                 >
-                  Next
+                  {loading ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    'Next'
+                  )}
                 </Button>
               </Box>
             </CardContent>
@@ -161,6 +189,15 @@ export default function Payment() {
             <CardContent>
               <Typography variant="h6" gutterBottom>Payment Method</Typography>
               
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+                  Subscription Amount:
+                </Typography>
+                <Typography variant="h5" color="primary">
+                  ${subscriptionAmount.toFixed(2)} USD
+                </Typography>
+              </Box>
+
               <Paper sx={{ mb: 2 }}>
                 <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)} centered>
                   <Tab label="PayPal" />
@@ -246,33 +283,54 @@ export default function Payment() {
                     Payment completed successfully!
                   </Alert>
                   
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    Please save these payment details for your records
+                  </Alert>
+                  
                   <Grid container spacing={2} sx={{ mt: 1 }}>
                     <Grid item xs={12} sm={6}>
                       <Typography variant="subtitle2">Customer ID</Typography>
-                      <Typography variant="body1">{customerId}</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="body1">{customerId}</Typography>
+                        <Tooltip title="Copy Customer ID">
+                          <IconButton size="small" onClick={() => navigator.clipboard.writeText(customerId)}>
+                            <ContentCopyIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <Typography variant="subtitle2">Company/Store</Typography>
                       <Typography variant="body1">{companyName}</Typography>
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2">Amount</Typography>
+                      <Typography variant="subtitle2">Amount Paid</Typography>
                       <Typography variant="body1">${subscriptionAmount.toFixed(2)} USD</Typography>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <Typography variant="subtitle2">Payment Method</Typography>
-                      <Typography variant="body1">{activeTab === 0 ? 'PayPal' : 'MTN Mobile Money'}</Typography>
+                      <Typography variant="body1">{activeTab === 0 ? 'PayPal/CREDIT/DEBIT' : 'MTN Mobile Money'}</Typography>
                     </Grid>
                     <Grid item xs={12}>
                       <Typography variant="subtitle2">Transaction ID</Typography>
-                      <Typography variant="body1">{paymentId || 'Processing...'}</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="body1">{paymentId || 'Processing...'}</Typography>
+                        <Tooltip title="Copy Transaction ID">
+                          <IconButton size="small" onClick={() => navigator.clipboard.writeText(paymentId)}>
+                            <ContentCopyIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle2">Subscribed App</Typography>
+                      <Typography variant="body1">Prynova Business Suite</Typography>
                     </Grid>
                   </Grid>
                   
-                  <Box sx={{ mt: 3, textAlign: 'center' }}>
+                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2 }}>
                     <Button 
-                      variant="contained" 
-                      color="primary"
+                      variant="outlined"
                       onClick={() => {
                         // Reset the form
                         setActiveStep(0)
@@ -284,6 +342,13 @@ export default function Payment() {
                       }}
                     >
                       Start New Payment
+                    </Button>
+                    <Button 
+                      variant="contained" 
+                      color="primary"
+                      onClick={() => navigate('/')}
+                    >
+                      Go to Home
                     </Button>
                   </Box>
                 </>
@@ -312,22 +377,42 @@ export default function Payment() {
   }
 
   return (
-    <Box sx={{ maxWidth: 700, mx: 'auto', mt: 4, px: 2 }}>
-      <Typography variant="h4" gutterBottom>Payment Process</Typography>
-      
-      <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-        <Step>
-          <StepLabel>Customer Info</StepLabel>
-        </Step>
-        <Step>
-          <StepLabel>Payment Options</StepLabel>
-        </Step>
-        <Step>
-          <StepLabel>Finalize</StepLabel>
-        </Step>
-      </Stepper>
-      
-      {getStepContent(activeStep)}
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        padding: 2
+      }}
+    >
+      <Card variant="outlined" sx={{ width: '100%', maxWidth: 600 }}>
+        <CardContent>
+          <Typography variant="h5" gutterBottom align="center">
+            Payment
+          </Typography>
+          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+            <Step>
+              <StepLabel>Customer Info</StepLabel>
+            </Step>
+            <Step>
+              <StepLabel>Payment Options</StepLabel>
+            </Step>
+            <Step>
+              <StepLabel>Finalize</StepLabel>
+            </Step>
+          </Stepper>
+          
+          {getStepContent(activeStep)}
+        </CardContent>
+      </Card>
+      <SnackbarComponent
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleSnackbarClose}
+      />
     </Box>
   )
 }
