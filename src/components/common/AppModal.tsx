@@ -116,7 +116,7 @@ const AppModal: React.FC<AppModalProps> = ({
               value={formData.appName}
               onChange={handleChange}
               required
-              disabled={isDelete}
+              disabled={isDelete || mode === 'edit'}
             />
             <TextField
               fullWidth

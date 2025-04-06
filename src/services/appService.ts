@@ -26,7 +26,7 @@ const appService = {
   },
 
   updateApp: async (id: number, appData: Partial<App>): Promise<App> => {
-    const response = await api.put(`/apps/${id}`, appData);
+    const response = await api.patch(`/apps/${id}`, appData);
     return response.data;
   },
 
