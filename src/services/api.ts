@@ -87,6 +87,34 @@ export const paymentApi = {
     }
   },
 
+  // Update payment status when payment fails
+  updatePaymentStatus: async (orderId: string, customerId: string, status: string, errorDetails?: any) => {
+    try {
+      console.log('Updating payment status:', { orderId, customerId, status, errorDetails });
+      
+      const response = await api.post('/payments/update-status', { 
+        orderId, 
+        customerId, 
+        status,
+        errorDetails: errorDetails || {}
+      });
+      
+      // console.log('Payment status update successful:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+      }
+      
+      throw error;
+    }
+  },
+
   // Get subscription details
   getSubscriptionDetails: async (customerId: string) => {
     try {

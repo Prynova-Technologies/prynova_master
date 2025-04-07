@@ -125,6 +125,36 @@ export default function Payment() {
         errorMessage = error.message
       }
       
+      // Create error details object for backend
+      const errorDetails = {
+        message: errorMessage,
+        paymentId: details.id || 'unknown',
+        errorType: error.name || 'ProcessingError',
+        timestamp: new Date().toISOString()
+      }
+      
+      try {
+        // Update backend about the failed payment even when capture fails
+        const failedPaymentResponse = await paymentApi.updatePaymentStatus(
+          details.id || 'unknown',
+          customerId,
+          'failed',
+          errorDetails
+        )
+        
+        // Set payment ID if returned from the update call
+        if (failedPaymentResponse?.paymentId) {
+          setPaymentId(failedPaymentResponse.paymentId)
+        }
+        
+        // Move to confirmation step to show the failed status
+        setPaymentComplete(false)
+        setActiveStep(2)
+      } catch (updateError) {
+        console.error('Failed to update payment status:', updateError)
+        // Continue with showing the error message to the user
+      }
+      
       setSnackbar({
         open: true,
         message: errorMessage,
@@ -262,7 +292,7 @@ export default function Payment() {
                         throw new Error('Could not create order: ' + (error.response?.data?.message || error.message))
                       }
                     }}
-                    onApprove={async (_, actions) => {
+                    onApprove={async (data, actions) => {
                       try {
                         if (!actions.order) {
                           throw new Error('Order actions not available')
@@ -287,6 +317,35 @@ export default function Payment() {
                           errorMessage = error.details.map(detail => detail.issue || detail.description).join(', ')
                         } else if (error.message) {
                           errorMessage = error.message
+                        }
+                        
+                        // Create error details object for backend
+                        const errorDetails = {
+                          message: errorMessage,
+                          paypalOrderId: data.orderID,
+                          errorType: error.name || 'CaptureError',
+                          timestamp: new Date().toISOString()
+                        }
+                        
+                        try {
+                          // Update backend about the failed payment
+                          const failedPaymentResponse = await paymentApi.updatePaymentStatus(
+                            data.orderID,
+                            customerId,
+                            'failed',
+                            errorDetails
+                          )
+                          
+                          // Set payment ID if returned from the update call
+                          if (failedPaymentResponse?.paymentId) {
+                            setPaymentId(failedPaymentResponse.paymentId)
+                          }
+                          
+                          // Move to confirmation step to show the failed status
+                          setPaymentComplete(false)
+                          setActiveStep(2)
+                        } catch (updateError) {
+                          console.error('Failed to update payment status:', updateError)
                         }
                         
                         // Show error to user
