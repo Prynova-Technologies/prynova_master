@@ -1,7 +1,7 @@
 import api from './api';
+import { ReactNode } from 'react';
 
 export interface User {
-  [x: string]: ReactNode;
   id?: string;
   username: string;
   email: string;

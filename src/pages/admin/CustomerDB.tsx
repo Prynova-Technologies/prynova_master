@@ -101,14 +101,14 @@ const CustomerDB: React.FC = () => {
           </Box>
         ) : dbInfo ? (
           <Grid container spacing={4} sx={{ height: 'calc(100vh - 200px)' }}>
-            <Grid item xs={12} lg={10} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Grid component="div" item xs={12} lg={10} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Card sx={{ mb: 4, flex: '0 0 auto' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 'bold' }}>
                     Database Overview
                   </Typography>
                   <Grid container spacing={3} sx={{ mt: 1 }}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid component="div" item xs={12} sm={6}>
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="subtitle2" color="text.secondary">
                           Business Name
@@ -126,7 +126,7 @@ const CustomerDB: React.FC = () => {
                         </Typography>
                       </Box>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid component="div" item xs={12} sm={6}>
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="subtitle2" color="text.secondary">
                           Storage Used
@@ -155,7 +155,7 @@ const CustomerDB: React.FC = () => {
                   </Typography>
                   <Grid container spacing={2} sx={{ mt: 1 }}>
                     {dbInfo.collectionsList.map((collection, index) => (
-                      <Grid item xs={12} sm={6} md={4} key={index}>
+                      <Grid component="div" item xs={12} sm={6} md={4} key={index}>
                         <Box
                           sx={{
                             p: 2,
@@ -194,7 +194,7 @@ const CustomerDB: React.FC = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} lg={4} sx={{ height: '50%' }}>
+            <Grid component="div" item xs={12} lg={4} sx={{ height: '50%' }}>
               <Card sx={{ height: '100%' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 'bold' }}>
