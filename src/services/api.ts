@@ -41,6 +41,7 @@ export const paymentApi = {
       if (filters?.search) queryParams.append('search', filters.search);
 
       const response = await api.get(`/payments?${queryParams.toString()}`);
+      // console.log(response.data.payments)
       return response.data;
     } catch (error) {
       console.error('Error fetching payments:', error);

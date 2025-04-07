@@ -200,7 +200,7 @@ export default function Payment() {
 
               <Paper sx={{ mb: 2 }}>
                 <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)} centered>
-                  <Tab label="PayPal" />
+                  <Tab label="PayPal/CREDIT/DEBIT" />
                   <Tab label="MTN Mobile Money" />
                 </Tabs>
               </Paper>
@@ -220,7 +220,12 @@ export default function Payment() {
                         return orderData.orderId
                       } catch (error) {
                         console.error('Error creating order:', error)
-                        throw new Error('Could not create order')
+                        setSnackbar({
+                          open: true,
+                          message: 'Failed to create payment order. Please try again or contact support.',
+                          severity: 'error'
+                        })
+                        throw new Error('Could not create order: ' + (error.response?.data?.message || error.message))
                       }
                     }}
                     onApprove={async (_, actions) => {

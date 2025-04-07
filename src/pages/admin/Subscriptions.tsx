@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   Typography,
   Box,
-  Paper,
   Grid,
   TextField,
   FormControl,
@@ -40,7 +39,9 @@ const PaymentsPage: React.FC = () => {
           search: searchTerm || undefined
         };
         const response = await paymentApi.getAllPayments(filters);
-        setPayments(response.data || []);
+        // Since getAllPayments already returns response.data, we don't need to access .data again
+        const paymentsData = response?.payments || response || [];
+        setPayments(Array.isArray(paymentsData) ? paymentsData : []);
         setSnackbar({ open: true, message: 'Payments fetched successfully', severity: 'success' });
       } catch (error) {
         console.error('Error fetching payments:', error);

@@ -12,14 +12,8 @@ import {
   Chip,
   IconButton,
   Collapse,
-  TextField,
   Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Typography,
-  SelectChangeEvent,
 } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 
@@ -71,9 +65,9 @@ const Row: React.FC<RowProps> = ({ payment }) => {
             {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
           </IconButton>
         </TableCell>
-        <TableCell>{payment.customerName}</TableCell>
+        <TableCell>{payment.companyName}</TableCell>
         <TableCell>{`${payment.currency} ${payment.amount.toFixed(2)}`}</TableCell>
-        <TableCell>{payment.paymentMethod}</TableCell>
+        <TableCell>{payment.subscribedApp}</TableCell>
         <TableCell>
           <Chip
             label={payment.status}
@@ -87,7 +81,7 @@ const Row: React.FC<RowProps> = ({ payment }) => {
             size="small"
           />
         </TableCell>
-        <TableCell>{formatDate(payment.date)}</TableCell>
+        <TableCell>{formatDate(payment.paymentDate)}</TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -100,7 +94,7 @@ const Row: React.FC<RowProps> = ({ payment }) => {
                 {/* Transaction Information */}
                 <Grid item xs={12} sm={6}>
                   <Typography variant="subtitle2">Transaction ID</Typography>
-                  <Typography variant="body2">{payment.transactionId}</Typography>
+                  <Typography variant="body2">{payment.orderId}</Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="subtitle2">Customer ID</Typography>
@@ -108,24 +102,10 @@ const Row: React.FC<RowProps> = ({ payment }) => {
                 </Grid>
                 
                 {/* Payment Status Information */}
-                {payment.success !== undefined && (
+                {payment.status !== undefined && (
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">Payment Success</Typography>
-                    <Typography variant="body2">{payment.success ? 'Yes' : 'No'}</Typography>
-                  </Grid>
-                )}
-                {payment.message && (
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">Status Message</Typography>
-                    <Typography variant="body2">{payment.message}</Typography>
-                  </Grid>
-                )}
-                
-                {/* Invoice Information */}
-                {payment.invoiceNumber && (
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">Invoice Number</Typography>
-                    <Typography variant="body2">{payment.invoiceNumber}</Typography>
+                    <Typography variant="subtitle2">Payment Completed</Typography>
+                    <Typography variant="body2">{payment.status === 'completed' ? 'Yes' : 'No'}</Typography>
                   </Grid>
                 )}
                 {payment.companyName && (
@@ -145,7 +125,7 @@ const Row: React.FC<RowProps> = ({ payment }) => {
                 {payment.lastUpdated && (
                   <Grid item xs={12} sm={6}>
                     <Typography variant="subtitle2">Last Updated</Typography>
-                    <Typography variant="body2">{formatDate(payment.lastUpdated)}</Typography>
+                    <Typography variant="body2">{formatDate(payment.updatedAt)}</Typography>
                   </Grid>
                 )}
                 
@@ -193,9 +173,10 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({
   };
 
   const filteredPayments = payments.filter((payment) => {
-    const matchesSearch =
-      payment.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.transactionId.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = searchTerm
+      ? (payment.companyName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (payment.orderId?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+      : true;
 
     const matchesStatus =
       statusFilter === 'all' || payment.status === statusFilter;
@@ -218,7 +199,7 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({
               <TableCell padding="checkbox" />
               <TableCell>Customer</TableCell>
               <TableCell>Amount</TableCell>
-              <TableCell>Payment Method</TableCell>
+              <TableCell>Subscribed App</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Date</TableCell>
             </TableRow>
