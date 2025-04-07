@@ -116,10 +116,10 @@ const Row: React.FC<RowProps> = ({ payment }) => {
                 )}
                 
                 {/* Date Information */}
-                {payment.paymentDate && (
+                {payment.paymentId && (
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">Payment Date</Typography>
-                    <Typography variant="body2">{formatDate(payment.paymentDate)}</Typography>
+                    <Typography variant="subtitle2">Payment ID</Typography>
+                    <Typography variant="body2">{payment.patmentId}</Typography>
                   </Grid>
                 )}
                 {payment.lastUpdated && (

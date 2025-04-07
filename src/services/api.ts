@@ -63,10 +63,26 @@ export const paymentApi = {
   // Capture a PayPal payment
   capturePayment: async (orderId: string, customerId: string) => {
     try {
+      // Log the capture attempt for debugging
+      console.log('Attempting to capture payment:', { orderId, customerId });
+      
       const response = await api.post('/payments/capture-payment', { orderId, customerId });
+      
+      // Log successful response
+      console.log('Payment capture successful:', response.data);
       return response.data;
     } catch (error) {
+      // Enhanced error logging
       console.error('Error capturing payment:', error);
+      
+      // Log detailed error information
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+      }
+      
       throw error;
     }
   },

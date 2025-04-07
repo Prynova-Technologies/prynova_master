@@ -84,6 +84,13 @@ export default function Payment() {
 
   const handlePaymentSuccess = async (details: any) => {
     try {
+      // Log payment details for debugging
+      console.log('Processing payment details:', { 
+        orderId: details.id,
+        status: details.status,
+        customerId
+      })
+      
       // Capture the payment through our backend
       const response = await paymentApi.capturePayment(details.id, customerId)
       
@@ -99,9 +106,28 @@ export default function Payment() {
       setActiveStep(2) // Move to final step
     } catch (error) {
       console.error('Error processing payment:', error)
+      
+      // Extract detailed error information
+      let errorMessage = 'Error processing payment. Please try again.'
+      
+      // Handle API response errors
+      if (error.response) {
+        console.error('API error response:', error.response.data)
+        errorMessage = error.response.data?.message || 
+                      error.response.data?.error || 
+                      `Server error: ${error.response.status}`
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error('No response received:', error.request)
+        errorMessage = 'No response from payment server. Please check your connection.'
+      } else if (error.message) {
+        // Something else caused the error
+        errorMessage = error.message
+      }
+      
       setSnackbar({
         open: true,
-        message: 'Error processing payment. Please try again.',
+        message: errorMessage,
         severity: 'error'
       })
     }
@@ -209,7 +235,15 @@ export default function Payment() {
                 <PayPalScriptProvider options={{
                   clientId: paypalClientId,
                   currency: 'USD',
-                  intent: 'capture'
+                  intent: 'capture',
+                  // Enable advanced card fields and components
+                  components: 'buttons,hosted-fields',
+                  // Improve card handling
+                  'enable-funding': 'card',
+                  'disable-funding': 'paylater,venmo',
+                  // Advanced error handling for card fields
+                  dataAttributeComponents: 'buttons,payment-fields',
+                  'data-card-form': 'true'
                 }}>
                   <PayPalButtons
                     style={{ layout: 'vertical' }}
@@ -229,8 +263,39 @@ export default function Payment() {
                       }
                     }}
                     onApprove={async (_, actions) => {
-                      const details = await actions.order?.capture()
-                      handlePaymentSuccess(details)
+                      try {
+                        if (!actions.order) {
+                          throw new Error('Order actions not available')
+                        }
+                        
+                        // Capture the order with improved error handling
+                        const details = await actions.order.capture()
+                        
+                        // Log successful capture details for debugging
+                        console.log('PayPal capture successful:', details)
+                        
+                        // Process the successful payment
+                        await handlePaymentSuccess(details)
+                      } catch (error) {
+                        console.error('PayPal capture error:', error)
+                        
+                        // Extract meaningful error message from PayPal error object
+                        let errorMessage = 'Payment processing failed. Please try again.'
+                        
+                        // Handle specific PayPal error types
+                        if (error.details && Array.isArray(error.details)) {
+                          errorMessage = error.details.map(detail => detail.issue || detail.description).join(', ')
+                        } else if (error.message) {
+                          errorMessage = error.message
+                        }
+                        
+                        // Show error to user
+                        setSnackbar({
+                          open: true,
+                          message: errorMessage,
+                          severity: 'error'
+                        })
+                      }
                     }}
                   />
                 </PayPalScriptProvider>
