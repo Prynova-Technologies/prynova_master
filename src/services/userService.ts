@@ -1,5 +1,4 @@
 import api from './api';
-import { ReactNode } from 'react';
 
 export interface User {
   id?: string;
