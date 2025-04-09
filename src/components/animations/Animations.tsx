@@ -12,7 +12,8 @@ export const SlideInLeft: React.FC<AnimationProps> = ({ children, delay = 0 }) =
   const controls = useAnimation();
   const [ref, inView] = useInView({
     triggerOnce: true,
-    threshold: 0.1
+    threshold: 0.15,
+    rootMargin: "50px"
   });
 
   React.useEffect(() => {
@@ -47,7 +48,8 @@ export const SlideInRight: React.FC<AnimationProps> = ({ children, delay = 0 }) 
   const controls = useAnimation();
   const [ref, inView] = useInView({
     triggerOnce: true,
-    threshold: 0.1
+    threshold: 0.15,
+    rootMargin: "50px"
   });
 
   React.useEffect(() => {
@@ -82,7 +84,8 @@ export const ScrollAnimation: React.FC<AnimationProps> = ({ children, delay = 0 
   const controls = useAnimation();
   const [ref, inView] = useInView({
     triggerOnce: true,
-    threshold: 0.1
+    threshold: 0.15,
+    rootMargin: "50px"
   });
 
   React.useEffect(() => {
@@ -116,14 +119,11 @@ export const ScrollAnimation: React.FC<AnimationProps> = ({ children, delay = 0 
 export const PulseAnimation: React.FC<AnimationProps> = ({ children }) => {
   return (
     <motion.div
-      animate={{ 
-        scale: [1, 1.05, 1],
+      whileHover={{ 
+        scale: 1.05,
+        transition: { duration: 0.3 }
       }}
-      transition={{
-        duration: 2,
-        repeat: Infinity,
-        repeatType: "reverse"
-      }}
+      whileTap={{ scale: 0.95 }}
     >
       {children}
     </motion.div>
@@ -131,12 +131,26 @@ export const PulseAnimation: React.FC<AnimationProps> = ({ children }) => {
 };
 
 export const AnimatedCard: React.FC<AnimationProps> = ({ children }) => {
+  const controls = useAnimation();
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.15,
+    rootMargin: "50px"
+  });
+
+  React.useEffect(() => {
+    if (inView) {
+      controls.start({ opacity: 1, y: 0 });
+    }
+  }, [controls, inView]);
+
   return (
     <motion.div
-      whileHover={{ 
-        y: -10,
-        transition: { duration: 0.3 }
-      }}
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={controls}
+      whileHover={{ y: -10 }}
+      transition={{ duration: 0.3 }}
       className="h-100"
     >
       {children}
@@ -154,7 +168,8 @@ export const StaggerContainer: React.FC<StaggerProps> = ({ children, delay = 0, 
   const controls = useAnimation();
   const [ref, inView] = useInView({
     triggerOnce: true,
-    threshold: 0.1
+    threshold: 0.15,
+    rootMargin: "50px"
   });
 
   React.useEffect(() => {
