@@ -14,12 +14,13 @@ interface EmailResponse {
 
 export async function sendContactEmail(data: ContactData): Promise<EmailResponse> {
   // Initialize EmailJS with your user ID
-  emailjs.init("YOUR_USER_ID");
+  emailjs.init("R-BxHLLk2yIJP9I_w");
   
   try {
     const response = await emailjs.send(
-      'YOUR_SERVICE_ID',
-      'YOUR_TEMPLATE_ID',
+      
+"service_mydh5k6",
+      '__ejs-test-mail-service__',
       data
     );
     

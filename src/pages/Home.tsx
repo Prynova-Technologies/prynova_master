@@ -363,10 +363,10 @@ const Portfolio: React.FC = () => {
 const Team: React.FC = () => {
   const team = [
     {
-      name: 'John Smith',
-      position: 'CEO & Founder',
-      image: '/images/team-member1.jpeg',
-      bio: 'Visionary leader with 15+ years of experience in software industry',
+      name: 'Hodalor Prince',
+      position: 'CO-Founder & Snr.Developer',
+      // image: '/images/team-member1.jpeg',
+      bio: 'Visionary leader with 8+ years of experience in software industry',
       social: {
         twitter: '#',
         facebook: '#',
@@ -375,10 +375,10 @@ const Team: React.FC = () => {
       }
     },
     {
-      name: 'Sarah Johnson',
-      position: 'CTO',
-      image: '/images/team-member2.jpg',
-      bio: 'Tech innovator specializing in cloud architecture and AI solutions',
+      name: 'Seth Donkor',
+      position: 'CEO & Marketing Manager',
+      // image: '/images/team-member2.jpg',
+      bio: 'Tech innovator , With over 9 Years Experience in Marketing and sales',
       social: {
         twitter: '#',
         facebook: '#',
@@ -387,9 +387,9 @@ const Team: React.FC = () => {
       }
     },
     {
-      name: 'Michael Chen',
-      position: 'Lead Developer',
-      image: '/images/team-member3.jpeg',
+      name: 'Abdellah Alhassan',
+      position: 'Co-Founder & Lead Developer',
+      // image: '/images/team-member3.jpeg',
       bio: 'Full-stack developer with expertise in modern web technologies',
       social: {
         twitter: '#',
@@ -399,9 +399,9 @@ const Team: React.FC = () => {
       }
     },
     {
-      name: 'Emily Rodriguez',
-      position: 'UX/UI Designer',
-      image: '/images/team-member4.jpeg',
+      name: 'Emmanuel Baffour Kyei',
+      position: 'UX/UI and Brand Ambassador',
+      // image: '/images/team-member4.jpeg',
       bio: 'Creative designer focused on building intuitive user experiences',
       social: {
         twitter: '#',
@@ -505,21 +505,25 @@ const Contact: React.FC = () => {
                   <div className="info-box">
                     <FontAwesomeIcon icon={faHeadset} className="icon" />
                     <h3>Call Us</h3>
-                    <p>+1 (555) 123-4567</p>
+                    <p>Ghana</p>
+                    <p>+233 (0) 24 026 2600 /+233 (0) 24 398 4046/  </p>
+                     <p>Zambia</p>
+                    <p>+260 76 545 3163/ +260 97 459 5105 </p>
                   </div>
                 </Col>
                 <Col md={6}>
                   <div className="info-box">
                     <FontAwesomeIcon icon={faGlobe} className="icon" />
                     <h3>Email Us</h3>
-                    <p>info@prynova.com</p>
+                    <p>prynovatechnologies@gmail.com</p>
                   </div>
                 </Col>
                 <Col md={12}>
                   <div className="info-box">
                     <FontAwesomeIcon icon={faCloud} className="icon" />
                     <h3>Address</h3>
-                    <p>123 Business Avenue, Tech Park, CA 94103</p>
+                    <p>Kokomlemle Olypic street, Accra, Ghana</p>
+                    <p>No.6 Kapuka Road, Olympia Extenssion, Lusaka Zambia</p>
                   </div>
                 </Col>
               </Row>

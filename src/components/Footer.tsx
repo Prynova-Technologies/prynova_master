@@ -57,9 +57,13 @@ const Footer: React.FC = () => {
           
           <Col lg={3} md={6} className="mb-4 mb-md-0">
             <h5 className="mb-3">Contact Us</h5>
-            <p className="mb-2">123 Business Avenue, Tech Park, CA 94103</p>
-            <p className="mb-2">info@prynova.com</p>
-            <p className="mb-2">+1 (555) 123-4567</p>
+           
+            <p className="mb-2">prynovatechnologies@gmail.com</p>
+             <p className="mb-2">Zambia</p>
+            
+            <p className="mb-2">+260 97 459 5105/+260 76 545 3163</p>
+             <p className='mb-2'>Ghana</p>
+                    <p>+233 (0) 24 026 2600 /+233 (0) 24 398 4046/  </p>
           </Col>
         </Row>
         
