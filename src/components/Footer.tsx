@@ -1,81 +1,78 @@
 import React from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
+import { Col, Container, Row } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLinkedin, faTwitter, faGithub, faFacebook } from '@fortawesome/free-brands-svg-icons';
+import { faGithub, faLinkedin, faTwitter } from '@fortawesome/free-brands-svg-icons';
 
 const Footer: React.FC = () => {
-  const primaryColor = '#0872bc';
   const currentYear = new Date().getFullYear();
-  
+
   return (
-    <footer className="bg-dark text-light py-5">
+    <footer className="site-footer">
       <Container>
-        <Row className="mb-4">
-          <Col lg={4} md={6} className="mb-4 mb-md-0">
-            <h5 className="mb-3">Prynova</h5>
-            <p className="mb-3">
-              Innovative software solutions for businesses of all sizes. We help companies 
-              transform their operations and achieve digital excellence.
-            </p>
-            <div className="social-links">
-              <a href="#" className="me-3 text-light">
-                <FontAwesomeIcon icon={faFacebook} />
-              </a>
-              <a href="#" className="me-3 text-light">
+        <Row className="g-4 align-items-start">
+          <Col lg={4} md={6}>
+            <div className="site-footer__brand">
+              <img src="/images/Prynova-logo.png" alt="Prynova logo" />
+              <div>
+                <h5>Prynova Technologies</h5>
+                <p>
+                  AI systems, software engineering, hardware integration, and networking
+                  delivered as one modern technology experience.
+                </p>
+              </div>
+            </div>
+          </Col>
+
+          <Col lg={2} md={6}>
+            <h6>Navigate</h6>
+            <ul className="site-footer__links">
+              <li><a href="#hero">Home</a></li>
+              <li><a href="#capabilities">Capabilities</a></li>
+              <li><a href="#solutions">Solutions</a></li>
+              <li><a href="#process">Process</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </Col>
+
+          <Col lg={3} md={6}>
+            <h6>What We Build</h6>
+            <ul className="site-footer__links">
+              <li>AI workflows and automation</li>
+              <li>Custom software platforms</li>
+              <li>Cloud and infrastructure systems</li>
+              <li>Device and hardware integrations</li>
+              <li>Network-ready business operations</li>
+            </ul>
+          </Col>
+
+          <Col lg={3} md={6}>
+            <h6>Reach Us</h6>
+            <ul className="site-footer__links">
+              <li>prynovatechnologies@gmail.com</li>
+              <li>Accra, Ghana</li>
+              <li>Lusaka, Zambia</li>
+              <li>+233 (0) 24 026 2600</li>
+              <li>+260 97 459 5105</li>
+            </ul>
+
+            <div className="site-footer__socials">
+              <a href="#" aria-label="Twitter">
                 <FontAwesomeIcon icon={faTwitter} />
               </a>
-              <a href="#" className="me-3 text-light">
+              <a href="#" aria-label="LinkedIn">
                 <FontAwesomeIcon icon={faLinkedin} />
               </a>
-              <a href="#" className="me-3 text-light">
+              <a href="#" aria-label="GitHub">
                 <FontAwesomeIcon icon={faGithub} />
               </a>
             </div>
           </Col>
-          
-          <Col lg={2} md={6} className="mb-4 mb-md-0">
-            <h5 className="mb-3">Quick Links</h5>
-            <ul className="list-unstyled">
-              <li className="mb-2"><a href="#home" className="text-light text-decoration-none">Home</a></li>
-              <li className="mb-2"><a href="#services" className="text-light text-decoration-none">Services</a></li>
-              <li className="mb-2"><a href="#about" className="text-light text-decoration-none">About</a></li>
-              <li className="mb-2"><a href="#portfolio" className="text-light text-decoration-none">Portfolio</a></li>
-              <li className="mb-2"><a href="#contact" className="text-light text-decoration-none">Contact</a></li>
-            </ul>
-          </Col>
-          
-          <Col lg={3} md={6} className="mb-4 mb-md-0">
-            <h5 className="mb-3">Services</h5>
-            <ul className="list-unstyled">
-              <li className="mb-2">Custom Software Development</li>
-              <li className="mb-2">Web Application Development</li>
-              <li className="mb-2">Mobile App Development</li>
-              <li className="mb-2">Cloud Solutions</li>
-              <li className="mb-2">UI/UX Design</li>
-            </ul>
-          </Col>
-          
-          <Col lg={3} md={6} className="mb-4 mb-md-0">
-            <h5 className="mb-3">Contact Us</h5>
-           
-            <p className="mb-2">prynovatechnologies@gmail.com</p>
-             <p className="mb-2">Zambia</p>
-            
-            <p className="mb-2">+260 97 459 5105/+260 76 545 3163</p>
-             <p className='mb-2'>Ghana</p>
-                    <p>+233 (0) 24 026 2600 /+233 (0) 24 398 4046/  </p>
-          </Col>
         </Row>
-        
-        <hr className="my-4" />
-        
-        <Row>
-          <Col className="text-center">
-            <p className="mb-0">
-              &copy; {currentYear} Prynova. All rights reserved.
-            </p>
-          </Col>
-        </Row>
+
+        <div className="site-footer__bottom">
+          <span>&copy; {currentYear} Prynova Technologies. All rights reserved.</span>
+          <span>Built to look and feel like the company you are becoming.</span>
+        </div>
       </Container>
     </footer>
   );

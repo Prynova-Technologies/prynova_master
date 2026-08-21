@@ -1,558 +1,668 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Button, Modal } from 'react-bootstrap';
+import React, { useMemo, useState } from 'react';
+import { Button, Col, Container, Modal, Row } from 'react-bootstrap';
+import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faLinkedin, 
-  faTwitter, 
-  faInstagram
-} from '@fortawesome/free-brands-svg-icons';
-import { 
+import {
+  faArrowRight,
+  faChartLine,
+  faCheckCircle,
+  faCloud,
   faCode,
   faGlobe,
-  faMobileAlt,
-  faCloud,
-  faChartLine,
-  faShieldAlt,
-  faHeadset
+  faHeadset,
+  faLaptopCode,
+  faMicrochip,
+  faNetworkWired,
+  faServer,
+  faShieldAlt
 } from '@fortawesome/free-solid-svg-icons';
 import NavigationBar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { ScrollAnimation } from '../components/animations/Animations';
 import ContactForm from '../components/forms/ContactForm';
-import { motion } from 'framer-motion';
+import './Home.css';
 
-// Hero Section
-const Hero: React.FC = () => {
-  const [showContactForm, setShowContactForm] = useState<boolean>(false);
+const capabilities = [
+  {
+    icon: faCode,
+    title: 'Software Engineering',
+    description: 'We design and build secure web apps, portals, internal tools, and scalable digital products.',
+    image: '/images/hero-coding.jpeg',
+    points: ['Custom website solutions', 'Scalable web applications'],
+    leftNotes: [
+      'Custom software platforms built around your workflow.',
+      'Web systems that are fast, secure, and ready to scale.',
+      'Dashboards and portals that make operations easier to manage.'
+    ],
+    rightNotes: [
+      'Modern interfaces that feel premium from the first click.',
+      'API-ready architecture for future growth and integrations.',
+      'Reliable engineering for internal and customer-facing tools.'
+    ]
+  },
+  {
+    icon: faMicrochip,
+    title: 'Hardware Integration',
+    description: 'We connect devices, sensors, POS systems, biometrics, and edge hardware into reliable workflows.',
+    image: '/images/pos-system.jpeg',
+    points: ['Connected devices and sensors', 'Operational hardware automation'],
+    leftNotes: [
+      'Smart integrations for POS, sensors, and business devices.',
+      'Operational visibility across your hardware footprint.',
+      'Stable connections between physical tools and software platforms.'
+    ],
+    rightNotes: [
+      'Fewer manual processes across branches and field teams.',
+      'Reliable device data flowing into your core systems.',
+      'Infrastructure designed for real-world business environments.'
+    ]
+  },
+  {
+    icon: faNetworkWired,
+    title: 'Networking & Infrastructure',
+    description: 'We deploy cloud, on-prem, and hybrid infrastructure with performance, uptime, and security in mind.',
+    image: '/images/analytics-system.jpeg',
+    points: ['Secure cloud deployment', 'High-uptime network systems'],
+    leftNotes: [
+      'Cloud, hybrid, and on-prem environments designed to stay available.',
+      'Network performance planning for growing companies.',
+      'Secure infrastructure that supports business continuity.'
+    ],
+    rightNotes: [
+      'Faster operations across teams, sites, and platforms.',
+      'Better visibility across services, traffic, and access.',
+      'A stronger foundation for AI, apps, and enterprise systems.'
+    ]
+  },
+  {
+    icon: faServer,
+    title: 'AI Systems',
+    description: 'We turn AI into practical business tools with automation, analytics, copilots, and intelligent operations.',
+    image: '/images/hospital-system.jpeg',
+    points: ['Intelligent business automation', 'AI workflow integration'],
+    leftNotes: [
+      'Automate workflows, support, and internal business processes.',
+      'Use AI to reduce delays and improve team efficiency.',
+      'Transform complex operations into clearer, smarter workflows.'
+    ],
+    rightNotes: [
+      'AI systems tailored to the needs of your industry.',
+      'Practical automation instead of vague AI promises.',
+      'Sharper decision-making through intelligent analytics.'
+    ]
+  }
+];
 
-  const titleVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        staggerChildren: 0.1
-      }
-    }
-  };
+const differentiators = [
+  'Clear technical strategy from interface to infrastructure',
+  'Production-ready systems across AI, software, hardware, and networking',
+  'Clean user experiences that build confidence from the first visit',
+  'Delivery built for businesses in Ghana, Zambia, and beyond'
+];
 
-  const wordVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.3 }
-    }
-  };
+const showcaseProjects = [
+  {
+    title: 'Hospital Operations Platform',
+    category: 'AI + Software',
+    image: '/images/hospital-system.jpeg',
+    description: 'A modern operating layer for appointments, patient workflows, reporting, and service visibility.'
+  },
+  {
+    title: 'Retail POS & Device Stack',
+    category: 'Hardware + Cloud',
+    image: '/images/pos-system.jpeg',
+    description: 'Connected payment, inventory, and branch-level dashboards built for fast-moving retail teams.'
+  },
+  {
+    title: 'Property Intelligence Suite',
+    category: 'Software + Analytics',
+    image: '/images/property-system.jpeg',
+    description: 'Operations, listings, and insight tools that help property teams manage assets with clarity.'
+  },
+  {
+    title: 'School Management System',
+    category: 'Platform Engineering',
+    image: '/images/school-system.jpeg',
+    description: 'Admissions, billing, class operations, and reporting brought into one dependable digital system.'
+  }
+];
+
+const deliverySteps = [
+  {
+    step: '01',
+    title: 'Discover',
+    description: 'We map the business workflow, the infrastructure gap, and the highest-value automation opportunities.'
+  },
+  {
+    step: '02',
+    title: 'Architect',
+    description: 'We align software, hardware touchpoints, networking, and security before development begins.'
+  },
+  {
+    step: '03',
+    title: 'Build',
+    description: 'We ship clean interfaces, stable services, and the integrations your operations depend on.'
+  },
+  {
+    step: '04',
+    title: 'Scale',
+    description: 'We support optimization, rollout, analytics, and new AI capabilities as your business grows.'
+  }
+];
+
+const leadership = [
+  {
+    name: 'Hodalor Prince',
+    role: 'Co-Founder, Senior Developer',
+    bio: 'Focuses on engineering systems that are dependable, maintainable, and ready for real operations.'
+  },
+  {
+    name: 'Seth Donkor',
+    role: 'CEO, Marketing Lead',
+    bio: 'Connects technical delivery with market opportunity, commercial strategy, and client growth.'
+  },
+  {
+    name: 'Abdellah Alhassan',
+    role: 'Co-Founder, Lead Developer',
+    bio: 'Leads full-stack product execution across web platforms, backend services, and integrations.'
+  },
+  {
+    name: 'Emmanuel Baffour Kyei',
+    role: 'UX/UI, Brand Experience',
+    bio: 'Shapes visual systems and interfaces that make advanced technology feel clear and trustworthy.'
+  }
+];
+
+const partnerLogos = [
+  '/images/partner-aws.svg',
+  '/images/partner-google.svg',
+  '/images/partner-microsoft.svg',
+  '/images/partner-ibm.svg',
+  '/images/partner-oracle.svg',
+  '/images/partner-salesforce.svg'
+];
+
+const metricCards = [
+  { label: 'Core capability', value: 'AI + Software + Hardware + Network' },
+  { label: 'Delivery focus', value: 'Operational systems that scale' },
+  { label: 'Regional footprint', value: 'Ghana and Zambia' }
+];
+
+const floatingStats = [
+  { value: '1500+', label: 'Projects delivered', className: 'tech-float-card--one' },
+  { value: '1150+', label: 'Client interactions improved', className: 'tech-float-card--two' },
+  { value: '24/7', label: 'Automation-ready operations', className: 'tech-float-card--three' }
+];
+
+const Home: React.FC = () => {
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [activeCapability, setActiveCapability] = useState(capabilities[0].title);
+
+  const capabilityDetail = useMemo(
+    () => capabilities.find((item) => item.title === activeCapability) ?? capabilities[0],
+    [activeCapability]
+  );
 
   return (
-    <section id="hero" className="hero-section">
-      <Container>
-        <Row className="align-items-center">
-          <Col lg={6} className="hero-content">
-            <motion.div
-              variants={titleVariants}
-              initial="hidden"
-              animate="visible"
-              className="mb-5"
-            >
-              <motion.span className="badge bg-light text-primary mb-3 px-3 py-2">
-                Innovative Software Solutions
-              </motion.span>
-              
-              <motion.h1 className="mb-4">
-                {"Transform Your Business with Custom Software".split(" ").map((word, index) => (
-                  <motion.span
-                    key={index}
-                    variants={wordVariants}
-                    style={{ display: 'inline-block', marginRight: '0.3rem' }}
-                  >
-                    {word}
-                  </motion.span>
-                ))}
-              </motion.h1>
-              
-              <motion.p className="lead mb-5">
-                We build cutting-edge software that helps businesses streamline operations, 
-                increase productivity, and achieve their digital transformation goals.
-              </motion.p>
+    <div id="home" className="tech-home">
+      <NavigationBar />
 
-              <motion.div 
-                className="d-flex gap-3"
-                initial={{ opacity: 0, y: 20 }}
+      <section id="hero" className="tech-hero">
+        <div className="tech-hero__glow tech-hero__glow--left" />
+        <div className="tech-hero__glow tech-hero__glow--right" />
+        <Container fluid className="tech-shell position-relative">
+          <Row className="align-items-center gy-5">
+            <Col lg={7}>
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
+                transition={{ duration: 0.6 }}
               >
-                <Button 
-                  variant="light" 
-                  size="lg" 
-                  className="rounded-pill px-4 fw-bold"
-                  onClick={() => setShowContactForm(true)}
-                >
-                  Get Started
-                </Button>
-                <Button 
-                  variant="outline-light" 
-                  size="lg" 
-                  className="rounded-pill px-4"
-                  href="#services"
-                >
-                  Learn More
-                </Button>
-              </motion.div>
-            </motion.div>
-          </Col>
-          <Col lg={6} className="hero-img">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8 }}
-            >
-              <motion.img 
-                src="/images/hero-coding.jpeg" 
-                alt="Software Development" 
-                className="img-fluid rounded shadow-lg"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4 }}
-                loading="lazy"
-              />
-            </motion.div>
-          </Col>
-        </Row>
-      </Container>
+                <span className="tech-eyebrow">Built for modern operations</span>
+                <h1 className="tech-hero__title">
+                  We engineer AI, software, hardware, and networking into one powerful business experience.
+                </h1>
+                <p className="tech-hero__subtitle">
+                  Prynova helps companies look forward and operate smarter with premium digital products,
+                  intelligent systems, secure infrastructure, and experiences that feel unmistakably high-tech.
+                </p>
 
-      <Modal 
-        show={showContactForm} 
+                <div className="tech-hero__actions">
+                  <Button
+                    className="tech-primary-btn"
+                    onClick={() => setShowContactForm(true)}
+                  >
+                    Start a Project <FontAwesomeIcon icon={faArrowRight} className="ms-2" />
+                  </Button>
+                  <Button
+                    variant="outline-light"
+                    className="tech-secondary-btn"
+                    href="#solutions"
+                  >
+                    View Our Work
+                  </Button>
+                </div>
+
+                <div className="tech-pill-group">
+                  {['AI Systems', 'Software Platforms', 'Hardware Integration', 'Cloud & Networking'].map((pill) => (
+                    <span key={pill} className="tech-pill">
+                      {pill}
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
+            </Col>
+
+            <Col lg={5}>
+              <motion.div
+                className="tech-hero-visual"
+                initial={{ opacity: 0, scale: 0.96, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.15 }}
+              >
+                <div className="tech-hero-visual__grid" />
+                <div className="tech-hero-visual__orb tech-hero-visual__orb--outer" />
+                <div className="tech-hero-visual__orb tech-hero-visual__orb--middle" />
+                <div className="tech-hero-visual__orb tech-hero-visual__orb--inner" />
+
+                <div className="tech-hero-portrait">
+                  <img src="/images/hero-coding.jpeg" alt="Prynova technology experience" />
+                </div>
+
+                {floatingStats.map((item) => (
+                  <div key={item.label} className={`tech-float-card ${item.className}`}>
+                    <strong>{item.value}</strong>
+                    <span>{item.label}</span>
+                  </div>
+                ))}
+
+                <div className="tech-command-panel">
+                  <div className="tech-command-panel__header">
+                    <span>System overview</span>
+                    <span className="tech-status-dot">Live</span>
+                  </div>
+
+                  <div className="tech-command-panel__grid">
+                    {metricCards.map((item) => (
+                      <div key={item.label} className="tech-metric-card">
+                        <small>{item.label}</small>
+                        <strong>{item.value}</strong>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="tech-command-panel__stack">
+                    <div className="tech-stack-card">
+                      <span>AI Layer</span>
+                      <strong>Automation, copilots, analytics</strong>
+                    </div>
+                    <div className="tech-stack-card">
+                      <span>Application Layer</span>
+                      <strong>Web, mobile, dashboards, APIs</strong>
+                    </div>
+                    <div className="tech-stack-card">
+                      <span>Infrastructure Layer</span>
+                      <strong>Cloud, hardware, connectivity, security</strong>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+
+      <section className="tech-trust-strip">
+        <Container fluid className="tech-shell">
+          <p className="tech-trust-strip__label">Technology partnerships and enterprise-aligned thinking that strengthen every delivery.</p>
+          <div className="tech-logo-row">
+            {partnerLogos.map((logo) => (
+              <div key={logo} className="tech-logo-item">
+                <img src={logo} alt="Technology partner logo" />
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <section id="capabilities" className="tech-section">
+        <Container fluid className="tech-shell">
+          <div className="text-center tech-section__intro">
+            <span className="tech-section__eyebrow">Capabilities</span>
+            <h2 className="tech-section__title">Technology capability that runs deeper than the first screen.</h2>
+            <p className="tech-section__copy">
+              A more visual service layer makes the site feel closer to a modern AI product company
+              than a static brochure.
+            </p>
+          </div>
+
+          <div className="tech-service-grid">
+            {capabilities.map((capability, index) => (
+              <motion.button
+                key={capability.title}
+                type="button"
+                className={`tech-service-card ${activeCapability === capability.title ? 'is-active' : ''}`}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.45, delay: index * 0.08 }}
+                onClick={() => setActiveCapability(capability.title)}
+              >
+                <div className="tech-service-card__header">
+                  <div className="tech-capability-card__icon">
+                    <FontAwesomeIcon icon={capability.icon} />
+                  </div>
+                  <h3>{capability.title}</h3>
+                </div>
+                <div className="tech-service-card__image">
+                  <img src={capability.image} alt={capability.title} />
+                </div>
+                <p>{capability.description}</p>
+                <ul className="tech-service-card__points">
+                  {capability.points.map((point) => (
+                    <li key={point}>
+                      <FontAwesomeIcon icon={faCheckCircle} />
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.button>
+            ))}
+          </div>
+
+          <div className="tech-ai-stage">
+            <div className="tech-ai-stage__column">
+              {capabilityDetail.leftNotes.map((item, index) => (
+                <motion.div
+                  key={item}
+                  className="tech-ai-note"
+                  initial={{ opacity: 0, x: -18 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.45, delay: index * 0.08 }}
+                >
+                  <div className="tech-ai-note__icon">
+                    <FontAwesomeIcon icon={capabilityDetail.icon} />
+                  </div>
+                  <p>{item}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="tech-ai-core-wrap">
+              <div className="tech-ai-core__ring tech-ai-core__ring--one" />
+              <div className="tech-ai-core__ring tech-ai-core__ring--two" />
+              <div className="tech-ai-core__ring tech-ai-core__ring--three" />
+              <div className="tech-ai-core">
+                <span>AI</span>
+                <strong>{capabilityDetail.title}</strong>
+              </div>
+              <div className="tech-ai-core__pulse" />
+              <div className="tech-ai-core__pulse tech-ai-core__pulse--delay" />
+              <div className="tech-ai-core__chips">
+                {['Data', 'Cloud', 'Apps', 'Network'].map((chip) => (
+                  <span key={chip}>{chip}</span>
+                ))}
+              </div>
+            </div>
+
+            <div className="tech-ai-stage__column">
+              {capabilityDetail.rightNotes.map((item, index) => (
+                <motion.div
+                  key={item}
+                  className="tech-ai-note"
+                  initial={{ opacity: 0, x: 18 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.45, delay: index * 0.08 }}
+                >
+                  <div className="tech-ai-note__icon">
+                    <FontAwesomeIcon icon={faCheckCircle} />
+                  </div>
+                  <p>{item}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          <Row className="g-4 mt-2">
+            <Col lg={7}>
+              <div className="tech-capability-grid">
+                {differentiators.map((item, index) => (
+                  <motion.div
+                    key={item}
+                    className="tech-capability-card tech-capability-card--mini"
+                    initial={{ opacity: 0, y: 18 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: 0.45, delay: index * 0.08 }}
+                  >
+                    <div className="tech-capability-card__icon">
+                      <FontAwesomeIcon icon={faCheckCircle} />
+                    </div>
+                    <div>
+                      <p>{item}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </Col>
+            <Col lg={5}>
+              <motion.div
+                className="tech-highlight-panel"
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5 }}
+              >
+                <span className="tech-highlight-panel__label">Currently selected</span>
+                <h3>{capabilityDetail.title}</h3>
+                <p>{capabilityDetail.description}</p>
+                <div className="tech-highlight-panel__image">
+                  <img src={capabilityDetail.image} alt={capabilityDetail.title} />
+                </div>
+              </motion.div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+
+      <section id="why-us" className="tech-section tech-section--alt">
+        <Container fluid className="tech-shell">
+          <Row className="g-4">
+            <Col lg={3} md={6}>
+              <div className="tech-stat-card">
+                <FontAwesomeIcon icon={faLaptopCode} />
+                <h3>Product-grade UX</h3>
+                <p>Interfaces with the polish people expect from a serious technology brand.</p>
+              </div>
+            </Col>
+            <Col lg={3} md={6}>
+              <div className="tech-stat-card">
+                <FontAwesomeIcon icon={faCloud} />
+                <h3>Scalable delivery</h3>
+                <p>Cloud-ready architectures that support growth, uptime, and regional expansion.</p>
+              </div>
+            </Col>
+            <Col lg={3} md={6}>
+              <div className="tech-stat-card">
+                <FontAwesomeIcon icon={faShieldAlt} />
+                <h3>Trust & reliability</h3>
+                <p>Security-minded builds, clean structures, and systems made for business-critical use.</p>
+              </div>
+            </Col>
+            <Col lg={3} md={6}>
+              <div className="tech-stat-card">
+                <FontAwesomeIcon icon={faChartLine} />
+                <h3>Commercial clarity</h3>
+                <p>Messaging that explains value fast, so visitors understand what Prynova actually delivers.</p>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+
+      <section id="solutions" className="tech-section">
+        <Container fluid className="tech-shell">
+          <div className="text-center tech-section__intro">
+            <span className="tech-section__eyebrow">Selected Solutions</span>
+            <h2 className="tech-section__title">Proof that looks and feels like a technology company.</h2>
+            <p className="tech-section__copy">
+              Explore the kind of digital products and operational platforms we design for ambitious teams.
+            </p>
+          </div>
+
+          <Row className="g-4">
+            {showcaseProjects.map((project, index) => (
+              <Col lg={6} key={project.title}>
+                <motion.div
+                  className="tech-showcase-card"
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.45, delay: index * 0.08 }}
+                >
+                  <div className="tech-showcase-card__image-wrap">
+                    <img src={project.image} alt={project.title} />
+                  </div>
+                  <div className="tech-showcase-card__body">
+                    <span>{project.category}</span>
+                    <h3>{project.title}</h3>
+                    <p>{project.description}</p>
+                  </div>
+                </motion.div>
+              </Col>
+            ))}
+          </Row>
+        </Container>
+      </section>
+
+      <section id="process" className="tech-section tech-section--process">
+        <Container fluid className="tech-shell">
+          <div className="text-center tech-section__intro">
+            <span className="tech-section__eyebrow">Execution Model</span>
+            <h2 className="tech-section__title">From first conversation to deployed system.</h2>
+            <p className="tech-section__copy">
+              A disciplined delivery model helps us turn ambitious ideas into stable, scalable systems.
+            </p>
+          </div>
+
+          <Row className="g-4">
+            {deliverySteps.map((item, index) => (
+              <Col lg={3} md={6} key={item.step}>
+                <motion.div
+                  className="tech-process-card"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.45, delay: index * 0.08 }}
+                >
+                  <span className="tech-process-card__step">{item.step}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
+                </motion.div>
+              </Col>
+            ))}
+          </Row>
+        </Container>
+      </section>
+
+      <section id="team" className="tech-section tech-section--alt">
+        <Container fluid className="tech-shell">
+          <div className="text-center tech-section__intro">
+            <span className="tech-section__eyebrow">Leadership</span>
+            <h2 className="tech-section__title">The people behind the systems.</h2>
+            <p className="tech-section__copy">
+              Meet the team shaping technology experiences that are practical, ambitious, and ready for the market.
+            </p>
+          </div>
+
+          <Row className="g-4">
+            {leadership.map((member, index) => (
+              <Col lg={3} md={6} key={member.name}>
+                <motion.div
+                  className="tech-team-card"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.45, delay: index * 0.08 }}
+                >
+                  <div className="tech-team-card__avatar">
+                    {member.name
+                      .split(' ')
+                      .slice(0, 2)
+                      .map((part) => part[0])
+                      .join('')}
+                  </div>
+                  <h3>{member.name}</h3>
+                  <strong>{member.role}</strong>
+                  <p>{member.bio}</p>
+                </motion.div>
+              </Col>
+            ))}
+          </Row>
+        </Container>
+      </section>
+
+      <section id="contact" className="tech-section tech-contact-section">
+        <Container fluid className="tech-shell">
+          <Row className="g-4 align-items-start">
+            <Col lg={5}>
+              <span className="tech-section__eyebrow">Contact</span>
+              <h2 className="tech-section__title">Let’s build the version of your company people remember.</h2>
+              <p className="tech-section__copy">
+                Whether you need an AI-driven workflow, a platform rebuild, hardware integration,
+                or stronger networking infrastructure, Prynova can help you ship with confidence.
+              </p>
+
+              <div className="tech-contact-info">
+                <div>
+                  <FontAwesomeIcon icon={faGlobe} />
+                  <div>
+                    <strong>Locations</strong>
+                    <span>Accra, Ghana and Lusaka, Zambia</span>
+                  </div>
+                </div>
+                <div>
+                  <FontAwesomeIcon icon={faHeadset} />
+                  <div>
+                    <strong>Call</strong>
+                    <span>+233 (0) 24 026 2600 | +260 97 459 5105</span>
+                  </div>
+                </div>
+                <div>
+                  <FontAwesomeIcon icon={faCloud} />
+                  <div>
+                    <strong>Email</strong>
+                    <span>prynovatechnologies@gmail.com</span>
+                  </div>
+                </div>
+              </div>
+            </Col>
+
+            <Col lg={7}>
+              <div className="tech-contact-form">
+                <ContactForm />
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+
+      <Footer />
+
+      <Modal
+        show={showContactForm}
         onHide={() => setShowContactForm(false)}
         centered
       >
         <Modal.Header closeButton>
-          <Modal.Title>Contact Us</Modal.Title>
+          <Modal.Title>Start Your Project</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <ContactForm isModal onClose={() => setShowContactForm(false)} />
         </Modal.Body>
       </Modal>
-    </section>
-  );
-};
-
-// Services Section
-const Services: React.FC = () => {
-  const services = [
-    {
-      icon: faCode,
-      title: 'Custom Software',
-      description: 'Tailored solutions that perfectly match your business needs',
-      color: '#3b82f6'
-    },
-    {
-      icon: faGlobe,
-      title: 'Web Development',
-      description: 'Modern and responsive web applications built with latest technologies',
-      color: '#8b5cf6'
-    },
-    {
-      icon: faMobileAlt,
-      title: 'Mobile Apps',
-      description: 'Native and cross-platform mobile applications',
-      color: '#ec4899'
-    },
-    {
-      icon: faCloud,
-      title: 'Cloud Solutions',
-      description: 'Scalable cloud infrastructure and services',
-      color: '#10b981'
-    },
-    {
-      icon: faChartLine,
-      title: 'Business Analytics',
-      description: 'Data-driven insights for informed decision making',
-      color: '#f59e0b'
-    },
-    {
-      icon: faShieldAlt,
-      title: 'Cybersecurity',
-      description: 'Protecting your digital assets and data',
-      color: '#ef4444'
-    }
-  ];
-
-  return (
-    <section id="services" className="section bg-light py-5">
-      <Container>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-5"
-        >
-          <span className="badge bg-primary-subtle text-primary mb-3 px-3 py-2">
-            Our Services
-          </span>
-          <h2 className="display-5 fw-bold mb-3">What We Offer</h2>
-          <p className="lead text-secondary mb-0">
-            Comprehensive software solutions to drive your business forward
-          </p>
-        </motion.div>
-
-        <Row className="g-4">
-          {services.map((service, index) => (
-            <Col lg={4} md={6} key={index}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <div className="card h-100 border-0 shadow-sm hover-lift">
-                  <div className="card-body p-4">
-                    <div 
-                      className="icon-box mb-4"
-                      style={{
-                        background: `linear-gradient(135deg, ${service.color}20, ${service.color}10)`,
-                        color: service.color,
-                        width: '60px',
-                        height: '60px',
-                        borderRadius: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <FontAwesomeIcon icon={service.icon} size="2x" />
-                    </div>
-                    <h3 className="h4 mb-3">{service.title}</h3>
-                    <p className="text-secondary mb-0">{service.description}</p>
-                  </div>
-                </div>
-              </motion.div>
-            </Col>
-          ))}
-        </Row>
-      </Container>
-    </section>
-  );
-};
-
-// Portfolio Section
-const Portfolio: React.FC = () => {
-  const [filter, setFilter] = useState('All');
-  
-  const projects = [
-    {
-      title: 'Hospital Management System',
-      category: 'Healthcare',
-      image: '/images/hospital-system.jpeg',
-      description: 'Comprehensive healthcare management solution'
-    },
-    {
-      title: 'Property Management System',
-      category: 'Real Estate',
-      image: '/images/property-system.jpeg',
-      description: 'End-to-end property management platform'
-    },
-    {
-      title: 'School Management System',
-      category: 'Education',
-      image: '/images/school-system.jpeg',
-      description: 'Modern educational institution management'
-    },
-    {
-      title: 'POS & Inventory System',
-      category: 'Retail',
-      image: '/images/pos-system.jpeg',
-      description: 'Advanced point of sale and inventory tracking'
-    },
-    {
-      title: 'Hotel Management System',
-      category: 'Hospitality',
-      image: '/images/hotel-system.jpeg',
-      description: 'Complete hotel operations management'
-    },
-    {
-      title: 'Analytics System',
-      category: 'Business',
-      image: '/images/analytics-system.jpeg',
-      description: 'Data-driven business intelligence platform'
-    }
-  ];
-
-  const categories = ['All', ...new Set(projects.map(project => project.category))];
-  const filteredProjects = filter === 'All' ? projects : projects.filter(project => project.category === filter);
-
-  return (
-    <section id="portfolio" className="section py-5">
-      <Container>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-5"
-        >
-          <span className="badge bg-primary-subtle text-primary mb-3 px-3 py-2">
-            Portfolio
-          </span>
-          <h2 className="display-5 fw-bold mb-3">Our Latest Work</h2>
-          <p className="lead text-secondary mb-5">
-            Explore our successful projects and innovative solutions
-          </p>
-
-          <div className="d-flex justify-content-center gap-2 flex-wrap mb-5">
-            {categories.map((category, index) => (
-              <Button
-                key={index}
-                variant={filter === category ? 'primary' : 'outline-primary'}
-                className="rounded-pill px-4"
-                onClick={() => setFilter(category)}
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
-        </motion.div>
-
-        <Row className="g-4">
-          {filteredProjects.map((project, index) => (
-            <Col lg={4} md={6} key={index}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <div className="card h-100 border-0 shadow-sm hover-lift overflow-hidden">
-                  <div className="position-relative">
-                    <motion.img 
-                      src={project.image} 
-                      className="card-img-top" 
-                      alt={project.title}
-                      style={{ height: '240px', objectFit: 'cover' }}
-                      loading="lazy"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    <div className="overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
-                      <Button variant="light" className="rounded-circle p-3">
-                        <i className="bi bi-plus-lg"></i>
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="card-body p-4">
-                    <span className="badge bg-primary-subtle text-primary mb-2">{project.category}</span>
-                    <h4 className="card-title mb-2">{project.title}</h4>
-                    <p className="card-text text-secondary">{project.description}</p>
-                  </div>
-                </div>
-              </motion.div>
-            </Col>
-          ))}
-        </Row>
-      </Container>
-    </section>
-  );
-
-};
-
-// Team Section
-const Team: React.FC = () => {
-  const team = [
-    {
-      name: 'Hodalor Prince',
-      position: 'CO-Founder & Snr.Developer',
-      // image: '/images/team-member1.jpeg',
-      bio: 'Visionary leader with 8+ years of experience in software industry',
-      social: {
-        twitter: '#',
-        facebook: '#',
-        instagram: '#',
-        linkedin: '#'
-      }
-    },
-    {
-      name: 'Seth Donkor',
-      position: 'CEO & Marketing Manager',
-      // image: '/images/team-member2.jpg',
-      bio: 'Tech innovator , With over 9 Years Experience in Marketing and sales',
-      social: {
-        twitter: '#',
-        facebook: '#',
-        instagram: '#',
-        linkedin: '#'
-      }
-    },
-    {
-      name: 'Abdellah Alhassan',
-      position: 'Co-Founder & Lead Developer',
-      // image: '/images/team-member3.jpeg',
-      bio: 'Full-stack developer with expertise in modern web technologies',
-      social: {
-        twitter: '#',
-        facebook: '#',
-        instagram: '#',
-        linkedin: '#'
-      }
-    },
-    {
-      name: 'Emmanuel Baffour Kyei',
-      position: 'UX/UI and Brand Ambassador',
-      // image: '/images/team-member4.jpeg',
-      bio: 'Creative designer focused on building intuitive user experiences',
-      social: {
-        twitter: '#',
-        facebook: '#',
-        instagram: '#',
-        linkedin: '#'
-      }
-    }
-  ];
-
-  return (
-    <section id="team" className="section bg-light py-5">
-      <Container>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-5"
-        >
-          <span className="badge bg-primary-subtle text-primary mb-3 px-3 py-2">
-            Our Team
-          </span>
-          <h2 className="display-5 fw-bold mb-3">Meet Our Experts</h2>
-          <p className="lead text-secondary mb-0">
-            Talented professionals behind our success
-          </p>
-        </motion.div>
-
-        <Row className="g-4">
-          {team.map((member, index) => (
-            <Col lg={3} md={6} key={index}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <div className="card border-0 shadow-sm hover-lift h-100">
-                  <div className="position-relative">
-                    <motion.img 
-                      src={member.image} 
-                      className="card-img-top" 
-                      alt={member.name}
-                      style={{ height: '300px', objectFit: 'cover' }}
-                      loading="lazy"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    <motion.div 
-                      className="social-overlay position-absolute w-100 h-100 top-0 start-0 d-flex align-items-center justify-content-center gap-2"
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <a href={member.social.linkedin} className="btn btn-light rounded-circle p-2">
-                        <FontAwesomeIcon icon={faLinkedin} />
-                      </a>
-                      <a href={member.social.twitter} className="btn btn-light rounded-circle p-2">
-                        <FontAwesomeIcon icon={faTwitter} />
-                      </a>
-                      <a href={member.social.instagram} className="btn btn-light rounded-circle p-2">
-                        <FontAwesomeIcon icon={faInstagram} />
-                      </a>
-                    </motion.div>
-                  </div>
-                  <div className="card-body text-center p-4">
-                    <h4 className="card-title mb-1">{member.name}</h4>
-                    <p className="text-primary mb-2">{member.position}</p>
-                    <p className="card-text text-secondary mb-0">{member.bio}</p>
-                  </div>
-                </div>
-              </motion.div>
-            </Col>
-          ))}
-        </Row>
-      </Container>
-    </section>
-  );
-
-};
-
-// Contact Section
-const Contact: React.FC = () => {
-  return (
-    <section id="contact" className="contact">
-      <Container>
-        <ScrollAnimation>
-          <header className="section-header">
-            <h2>Contact</h2>
-            <p>Get in touch with us</p>
-          </header>
-        </ScrollAnimation>
-
-        <Row className="gy-4">
-          <Col lg={6}>
-            <ScrollAnimation>
-              <Row className="gy-4">
-                <Col md={6}>
-                  <div className="info-box">
-                    <FontAwesomeIcon icon={faHeadset} className="icon" />
-                    <h3>Call Us</h3>
-                    <p>Ghana</p>
-                    <p>+233 (0) 24 026 2600 /+233 (0) 24 398 4046/  </p>
-                     <p>Zambia</p>
-                    <p>+260 76 545 3163/ +260 97 459 5105 </p>
-                  </div>
-                </Col>
-                <Col md={6}>
-                  <div className="info-box">
-                    <FontAwesomeIcon icon={faGlobe} className="icon" />
-                    <h3>Email Us</h3>
-                    <p>prynovatechnologies@gmail.com</p>
-                  </div>
-                </Col>
-                <Col md={12}>
-                  <div className="info-box">
-                    <FontAwesomeIcon icon={faCloud} className="icon" />
-                    <h3>Address</h3>
-                    <p>Kokomlemle Olypic street, Accra, Ghana</p>
-                    <p>No.6 Kapuka Road, Olympia Extenssion, Lusaka Zambia</p>
-                  </div>
-                </Col>
-              </Row>
-            </ScrollAnimation>
-          </Col>
-
-          <Col lg={6}>
-            <ScrollAnimation delay={0.2}>
-              <ContactForm />
-            </ScrollAnimation>
-          </Col>
-        </Row>
-      </Container>
-    </section>
-  );
-};
-
-// Main Home Component
-const Home: React.FC = () => {
-  return (
-    <>
-      <NavigationBar />
-      <Hero />
-      <Services />
-      <Portfolio />
-      <Team />
-      <Contact />
-      <Footer />
-    </>
+    </div>
   );
 };
 

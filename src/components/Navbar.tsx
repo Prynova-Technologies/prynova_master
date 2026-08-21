@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Navbar, Nav, Container, Modal, Form, Button } from 'react-bootstrap';
+import { Button, Container, Modal, Nav, Navbar } from 'react-bootstrap';
+import ContactForm from './forms/ContactForm';
 
-const NavigationBar = () => {
+const NavigationBar: React.FC = () => {
   const [showContactModal, setShowContactModal] = useState(false);
 
   const scrollToSection = (sectionId: string) => {
@@ -9,74 +10,75 @@ const NavigationBar = () => {
     if (element) {
       element.scrollIntoView({
         behavior: 'smooth',
-        block: 'start',
+        block: 'start'
       });
     }
   };
 
+  const navItems = [
+    { label: 'Home', id: 'hero' },
+    { label: 'Capabilities', id: 'capabilities' },
+    { label: 'Solutions', id: 'solutions' },
+    { label: 'Process', id: 'process' },
+    { label: 'Team', id: 'team' },
+    { label: 'Contact', id: 'contact' }
+  ];
+
   return (
     <>
-      <Navbar bg="light" expand="lg" sticky="top" className="shadow-sm py-3">
+      <Navbar expand="lg" sticky="top" className="site-navbar">
         <Container>
-          <Navbar.Brand href="#home" className="d-flex align-items-center">
+          <Navbar.Brand
+            href="#hero"
+            className="site-navbar__brand"
+            onClick={(event) => {
+              event.preventDefault();
+              scrollToSection('hero');
+            }}
+          >
             <img
               src="/images/Prynova-logo.png"
-              alt="Prynova Logo"
-              height="40"
-              className="me-2"
+              alt="Prynova logo"
+              className="site-navbar__logo"
             />
-            {/* <span className="fw-bold">Prynova</span> */}
+            <span>Prynova Technologies</span>
           </Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="ms-auto">
-              <Nav.Link onClick={() => scrollToSection('home')}>Home</Nav.Link>
-              <Nav.Link onClick={() => scrollToSection('services')}>Services</Nav.Link>
-              <Nav.Link onClick={() => scrollToSection('about')}>About</Nav.Link>
-              <Nav.Link onClick={() => scrollToSection('portfolio')}>Portfolio</Nav.Link>
-              <Nav.Link onClick={() => scrollToSection('products')}>Products</Nav.Link>
-              <Nav.Link onClick={() => scrollToSection('team')}>Team</Nav.Link>
-              <Nav.Link onClick={() => setShowContactModal(true)}>Contact Us</Nav.Link>
+
+          <Navbar.Toggle aria-controls="site-navbar-nav" className="site-navbar__toggle" />
+
+          <Navbar.Collapse id="site-navbar-nav">
+            <Nav className="ms-auto align-items-lg-center gap-lg-2">
+              {navItems.map((item) => (
+                <Nav.Link
+                  key={item.id}
+                  className="site-navbar__link"
+                  onClick={() => scrollToSection(item.id)}
+                >
+                  {item.label}
+                </Nav.Link>
+              ))}
+
+              <Button
+                className="site-navbar__cta"
+                onClick={() => setShowContactModal(true)}
+              >
+                Start a Project
+              </Button>
             </Nav>
           </Navbar.Collapse>
         </Container>
       </Navbar>
 
-      {/* Contact Form Modal */}
-      <Modal 
-        show={showContactModal} 
+      <Modal
+        show={showContactModal}
         onHide={() => setShowContactModal(false)}
         centered
-        backdrop="static"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Contact Us</Modal.Title>
+          <Modal.Title>Contact Prynova</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {/* Simple contact form */}
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Your Name</Form.Label>
-              <Form.Control type="text" placeholder="Enter your name" required />
-            </Form.Group>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Email Address</Form.Label>
-              <Form.Control type="email" placeholder="Enter your email" required />
-              <Form.Text className="text-muted">
-                We'll never share your email with anyone else.
-              </Form.Text>
-            </Form.Group>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Message</Form.Label>
-              <Form.Control as="textarea" rows={4} placeholder="How can we help you?" required />
-            </Form.Group>
-            
-            <Button variant="primary" type="submit" className="w-100">
-              Send Message
-            </Button>
-          </Form>
+          <ContactForm isModal onClose={() => setShowContactModal(false)} />
         </Modal.Body>
       </Modal>
     </>
